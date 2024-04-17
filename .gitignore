@@ -1,3 +1,4 @@
 outputs/
 yaml/
 json/
+__pycache__/

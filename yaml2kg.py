@@ -1,7 +1,7 @@
+#!/usr/bin/env python
 import yaml
 import json
 import argparse
-from random import randint
 import networkx as nx
 import uuid
 from pyvis.network import Network
@@ -18,15 +18,22 @@ particle_color = "red"
 ttcolor = "blue"
 
 # file paths
-yaml_file = r"C:\Users\ludwi\Desktop\master_thesis\Code\neo4j\yaml\yaml\BJKK.yaml"
-var_file = r"C:\Users\ludwi\Desktop\master_thesis\Code\toolyzer_temp\rest_lessvariables.json"
-prop_file =r"C:\Users\ludwi\Desktop\master_thesis\Code\neo4j\yaml\json\particle_properties.json"
-decay_file =r"C:\Users\ludwi\Desktop\master_thesis\Code\neo4j\yaml\json\decays.json"
-graph_output_directory = "outputs/pyvisgraph.html"
+var_file = r"C:\Users\ludwi\Desktop\master_thesis\Code\yaml2kg\json\rest_lessvariables.json"
+prop_file =r"C:\Users\ludwi\Desktop\master_thesis\Code\yaml2kg\json\particle_properties.json"
+decay_file =r"C:\Users\ludwi\Desktop\master_thesis\Code\yaml2kg\json\decays.json"
+
 
 #options
 link_hover  = False # create nodes from hover data
-pyvis = True # choose visualization, pyvis or plotly
+
+
+def parse_args():
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(prog = "yaml2kg", description="Create a graph from a yaml file.")
+    parser.add_argument("file", type=str, help="The path to the yaml file.")
+    parser.add_argument("-o", "--output", type=str, help="The path to the output file. Defaults to graph.html.")
+    parser.add_argument("-p", "--pyvis", action="store_true", help="Use pyvis (default) for visualization, if false use plotly.")
+    return parser.parse_args()
 
 def get_mapped_list(decay_temp: str) -> list:
     """Get the mapped list from the decay file. This takes the str from the yaml.
@@ -192,7 +199,7 @@ def link_all(graph: nx.DiGraph, config: dict, apl_tools: list) -> dict:
     label_dict = {} # for pyvis visualization to convert uuids back to readable labels
     for group in list(config["groups"].keys())[::-1]: # go through groups in reverse order
         for tool in config["groups"][group]["tools"][::-1]:
-            toolname = list(tool.keys())[0].split("/")[0]
+            toolname = list(tool.keys())[0] + "{}".format(tool[list(tool.keys())[0]]['ExtraName']) # this ensures that the tool has a different name and extra name 
             for particle in group.split(","):
                 if toolname in apl_tools[particle]: # if the tool was already applied, skip it
                     pass
@@ -202,15 +209,15 @@ def link_all(graph: nx.DiGraph, config: dict, apl_tools: list) -> dict:
     for particles in list(config["branches"].items()):
         particle_name = particles[0]
         for tool in particles[1]["tools"][::-1]:
-            toolname = list(tool.keys())[0].split("/")[0]
+            toolname = toolname = list(tool.keys())[0] + "{}".format(tool[list(tool.keys())[0]]['ExtraName'])
             if toolname in apl_tools[particle_name]:
                 pass
             else:
                 label_dict = label_dict | link_var(graph,tool,particle_name)
                 apl_tools[particle_name].append(toolname)
     for tool in config["tools"]:
-        toolname = list(tool.keys())[0].split("/")[0]
-        if "Event" in toolname:
+        toolname = list(tool.keys())[0] + "{}".format(tool[list(tool.keys())[0]]['ExtraName'])
+        if "Event" in toolname and toolname not in apl_tools[particle]:
             graph.add_node("Event", color = "red", label = "Event")
             graph.add_edge("Event",list(graph.nodes)[0])
             label_dict = label_dict | link_var(graph,tool,"Event")
@@ -265,13 +272,16 @@ def style_graph(G: nx.DiGraph, label_dict: dict) -> tuple[list, list | None, dic
         hover_data = None
     return color_map,hover_data,pos
 
-def main(): # opens yaml file, calls every other function1
+def main(): # opens yaml file, calls every other function
+    args = parse_args()
+    output = args.output if args.output else r"graph.html"
+    yaml_file = args.file
+    pyvis = args.pyvis if args.pyvis else True
     with open(yaml_file,"r") as f:
         config = yaml.safe_load(f)
     decayl = get_mapped_list(config["descriptorTemplate"])
 
     applied_tupletools = {}
-    print(decayl)
     graph = build_decay_graph(decayl) # construct decay graph
     with open(prop_file) as f: # edit particle properties
         data = json.load(f)
@@ -310,10 +320,10 @@ def main(): # opens yaml file, calls every other function1
         
         for node in node_l:
             counts[node["level"]] = counts.get(node["level"], 0) + 1
-            node["physics"] = False
+            node["physics"] = False # disable physics for particles
             node["size"] = 15
         net.force_atlas_2based(central_gravity=0.01, gravity=-31,overlap = 1)
-        for level in sorted(counts):
+        for level in sorted(counts): # this is so that the particles are aligned in a decay tree
                 i = 0
                 for node in net.nodes:
                         if node["color"] == particle_color:
@@ -321,13 +331,13 @@ def main(): # opens yaml file, calls every other function1
                                     node["y"] = node["level"]*200-1000
                                     node["x"] = counts[node["level"]]*20*i-counts[node["level"]]*20
                                     i += 1
-        net.show_buttons()
-        net.show(graph_output_directory, notebook=False)
+        net.save_graph(output)
     else:
         vis = GraphVisualization(graph, pos, node_text = label_dict, node_text_position= 'top center', node_size= 20, node_color=color_map, node_hover=hover_data)
         fig = vis.create_figure(showlabel=True)
-        fig.show()
-        fig.write_html(r"C:\Users\ludwi\Desktop\master_thesis\Code\neo4j\yaml\outputs\graph.html")
-main()
+        fig.write_html(output)
+
+if __name__ == "__main__":
+    main()
 
 
