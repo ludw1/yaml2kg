@@ -18,9 +18,9 @@ particle_color = "red"
 ttcolor = "blue"
 
 # file paths
-var_file = r"C:\Users\ludwi\Desktop\master_thesis\Code\yaml2kg\json\rest_lessvariables.json"
-prop_file =r"C:\Users\ludwi\Desktop\master_thesis\Code\yaml2kg\json\particle_properties.json"
-decay_file =r"C:\Users\ludwi\Desktop\master_thesis\Code\yaml2kg\json\decays.json"
+var_file = r".\json\rest_lessvariables.json"
+prop_file =r".\json\particle_properties.json"
+decay_file =r".\json\decays.json"
 
 
 #options

@@ -1,0 +1,508 @@
+{
+    "TupleToolKinematic": {
+        "variables":{
+            "head_P" : "momentum's amplitude",
+            "head_PT" : "transverse momentum",
+            "head_P[E|X|Y|Z]" : "four vector momentum",
+            "head_MM" : "measured mass (or assigned mass in case of 'basic' particle) ",
+            "head_M" : "mass calculated from momentum four-vector",
+            "head_MMERR" : "error on the measured mass (only for non-basic parts)",
+            "Verbose": {
+                "head_REFP[X|Y|Z]": "one point the particle momentum extrapolation goes through",
+                    "basic,charged":{
+                "head_AtVtx_P" : "momentum's amplitude at origin vertex",
+                "head_AtVtx_PT" : "transverse momentum at origin vertex",
+                "head_AtVtx_P[E|X|Y|Z]": "momentum information of basic particles at origin vertex position",
+                "head_AtSV_P" : "momentum's amplitude at secondary vertex",
+                "head_AtSV_PT" : "transverse momentum at secondary vertex",
+                "head_AtSV_P[E|X|Y|Z]": "momentum information of basic particles at secondary vertex position"
+                    }
+                
+            }
+        }
+    },
+    "TupleToolEventInfo":{
+        "variables":{
+            "runNumber": "well, the run number",
+            "eventNumber": "well, the event number",
+            "BCID": "bunch crossing id",
+            "BC type": " Bunch Crossing type: 0 = NoBeam,  1 = Beam1,  2 = Beam2,   3 = Beam Crossing",
+            "OdinTCK": "Odin Trigger Configuration Keys",
+            "L0DUTCK": "L0DU Trigger Configuration Keys",
+            "HLT1TCK": "HLT1 Trigger Configuration Keys",
+            "HLT2TCK": "HLT2 Trigger Configuration Keys",
+            "GpsTime": "Time",
+            "Polarity": "+1 = Up  -1 = Down",
+            "Verbose":{
+                "TriggerType" : "",
+                "GpsYear,month,day etc.": "More detailed gps time"
+            }
+        }
+    },
+    "TupleToolANNPID": {
+        "variables":{
+                "basic,charged":{
+            "head_ANNPIDTunes_ProbNNPIDTypes":"Writes prob that particle is of PID type (e.g. electron, muon etc.)"
+                }
+            
+        }
+    },
+    "TupleToolPid":{
+        "variables":{
+            "head_ID": "PDG ID?",
+                "basic":{
+                    "head_PID{e,mu,K,p,d}":" Likelihood vs Pion Likelihood?",
+                    "head_ProbNN{e,k,p,pi,mu,d,ghost}": "Prob calculated from ANN",
+                    "head_hasMuon": "track has hits consistent with a muon",
+                    "head_isMuon": "Is the track from a muon?",
+                    "head_hasRich": "RICH registered a track in event",
+                    "head_RichAbove{El,Mu,Pi,Ka,Pr}Thres":"Electron, Muon etc. Hypothesis over RICH threshold",
+                    "head_hasCalo": "hits in calorimeter"
+                },
+            
+            "Verbose":{
+                    "basic":{
+                        "head_RichDLL{mu,pi,k,p,bt,d}": "delta log likelihood for muon, pion etc. below threshold hypothesis",
+                        "head_InAccMuon": "Acceptance flag for MUON system (reaches geometrical acceptance)",
+                        "head_isMuonLoose": "muon candidates with the momentum between 3 and 6 GeV/c that have hits in at least M1-M4 muon stations and the candidates with the momentum greater than 6 GeV/c that have hits in all muon stations",
+                        "head_isMuonTight": "only crossed hits, signal in x and y readout",
+                        "head_MuonNSharedHits" : "The number of muon system hits shared with other tracks.",
+                        "head_MuonMuLL" : "The absolute value of the muon-like LL. (log likelihood)",
+                        "head_MuonBkgLL" : "The absolute value of the non-muon-like LL.",
+                        "head_MuonChi2Correlated": "The chi2 using the correlation of the hits",
+                        "head_InAccEcal": "Flag in acceptance of Ecal-based CaloID",
+                        "head_CaloEcalE": "CaloID estimator : Ecal energy deposit (charged)",
+                        "head_EcalPIDe": "Ecal-based DLL for electron-ID",
+                        "head_EcalPIDmu": "Ecal-based DLL for muon-ID DLL",
+                        "head_InAccHcal": "Flag in acceptance of Hcal-based CaloID",
+                        "head_CaloHcalE": "CaloID estimator : Hcal energy deposit (charged)",
+                        "head_HcalPIDe": "Hcal-based DLL for electron-ID",
+                        "head_HcalPIDmu": "Ecal-based DLL for muon-ID DLL",
+                        "head_InAccPrs": "Flag in acceptance of Prs-based CaloID (PreShower)",
+                        "head_PrsPIDe": "Prs-based DLL for electron-ID",
+                        "head_CaloPrsE": "CaloID estimator : Prs energy deposit (charged)",
+                        "head_InAccSpd": "Flag in acceptance of Spd-based CaloID (Scintillating Pad)",
+                        "head_CaloSpdE": "CaloID estimator : Spd hit",
+                        "head_InAccBrem": "Flag in acceptance of Brem-based CaloID (Bremsstrahlung)",
+                        "head_BremPIDe": "Brem-based DLL for electron-ID",
+                        "head_VeloCharge":" The dE/dx charge from the VELO system"
+                    }
+                }
+            
+        }
+    },
+
+    "TupleToolGeometry":{
+        "variables":{
+            "head_ENDVERTEX_[X|Y|Z]" : "decay vertex position for composite particles",
+            "head_ENDVERTEX_[X|Y|Z]ERR" : "decay vertex position error estimate for composite particles",
+            "head_ENDVERTEX_CHI2" : "decay vertex chi2",
+            "head_ENDVERTEX_NDOF" : "decay vertex nDoF",
+            "head_ENDVERTEX_COV_": "Covariance matrix containing errors on vertex position",
+            "head_OWNPV_[X|Y|Z]" : "related primary vertex position",
+            "head_OWNPV_[X|Y|Z]ERR" :" related primary vertex position error estimate for composite particles",
+            "head_OWNPV_CHI2" : "related primary vertex chi2",
+            "head_OWNPV_NDOF" :" related primary vertex nDoF",
+            "head_OWNPV_COV_": "Covariance matrix containing errors on vertex position",
+            "head_IP_OWNPV" : "impact parameter with respect to the PhysDesktop::relatedVertex() considered particle",
+            "head_IPCHI2_OWNPV" : "impact parameter chi2 with respect to the relatedVertex() considered particle",
+            "!basic":{
+                "head_FD_OWNPV" : "flight distance of composite particle wrt. the relatedVertex() considered particle",
+                "head_FDCHI2_OWNPV" : "flight distance significance in units of chi2 wrt. the relatedVertex() considered particle",
+                "head_DIRA_OWNPV" : "direction angle wrt. the PhysDesktop::relatedVertex() considered particle"
+            },
+            "!head":{
+                "head_ORIVX_[X|Y|Z]" : "ancestor's related primary vertex position (when applicable)",
+                "head_ORIVX_[X|Y|Z]ERR" : "ancestor's related primary vertex position error estimate (when applicable)",
+                "head_ORIVX_CHI2" : "ancestor's related primary vertex chi2 (when applicable)",
+                "head_ORIVX_NDOF" : "ancestor's related primary vertex nDoF (when applicable)",
+                "head_ORIVX_COV_": "Covariance matrix containing errors on vertex position",
+                "!basic":{
+                    "head_FD_ORIVX" : "flight distance of composite particle wrt. the ancestor's vertex (when applicable)",
+                    "head_FDCHI2_ORIVX" : "flight distance significance in units of chi2 wrt. ancestor's vertex (when applicable)",
+                    "head_DIRA_ORIVX" : "direction angle wrt. ancestor's vertex (when applicable)"
+                }
+            },
+            "Verbose":{
+                "head_TOPPV_[X|Y|Z]" : "PhysDesktop::relatedVertex() of the top of decay chain position",
+                "head_TOPPV_[X|Y|Z]ERR" : "PhysDesktop::relatedVertex() of the top of decay chain position error estimate",
+                "head_TOPPV_CHI2" : "PhysDesktop::relatedVertex() of the top of decay chain chi2",
+                "head_TOPPV_NDOF" : "PhysDesktop::relatedVertex() of the top of decay chain nDoF",
+                "head_IP_TOPPV" : "impact parameter with respect to the PhysDesktop::relatedVertex() of the top of decay chain",
+                "head_IPCHI2_TOPPV" : "impact parameter chi2 with respect to the relatedVertex() of the top of decay chain",
+                "head_IP_ORIVX" : "impact parameter with respect to the ancestor's vertex (when applicable)",
+                "head_IPCHI2_ORIVX" : "impact parameter chi2 with respect to the ancestor's vertex (when applicable)",
+                "head_MINIP": "minimum value of the impact parameter of the particle",
+                "head_MINIPCHI2": "minimum value of the impact parameter of the particle chi2",
+                "head_MINIPNEXTBEST": "next best minimum value of the ip",
+                "head_MINIPCHI2NEXTBEST": "next best minimum value of the ip chi2",
+                "!basic":{
+                    "head_FD_TOPPV" : "flight distance of composite particle wrt. the relatedVertex() of the top of decay chain",
+                    "head_FDCHI2_TOPPV" : "flight distance significance in units of chi2 wrt. the PhysDesktop::relatedVertex() of the top of decay chain",
+                    "head_DIRA_TOPPV" : "direction angle wrt. the relatedVertex() of the top of decay chain"
+                }       
+                
+
+            },
+            "FillMultiPV":{
+                "head": {
+                    "nPV": "number of primary vertices"
+                },
+                "head_AllIP" : "IP wrt to all PVs",
+                "head_AllIPchi2" : "IPchi2 wrt to all Vs",
+                "head_AllDIRA" : "DIRA wrt to all PVs"
+            }
+        }
+    },
+    "TupleToolAngles":{
+        "variables":{
+            "!head":{
+                "head_CosTheta": "angle in the frame of the mother"
+
+            },
+            "Verbose":{
+                "head_Theta" : "acos(CosTheta)"
+            }
+        }
+    },
+    "TupleToolBremInfo":{
+        "variables":{
+            "basic":{
+                "head_HasBremAdded" : "particle momentum is brem-corrected (0/1)",
+                "head_BremMultiplicity" : "number of brem photons added to the particle momentum",
+                "head_DiBremMultiplicity" : "number of brem photons added to the particle momentum for (p1,p2) system",
+                "head_Particle_DiBremMultiplicity" : "number of brem photons added to the particle momentum for specific particle",
+                "fullDST":{
+                    "head_BremP":"momentum of the brem photon",
+                    "head_BremOrigin":"origin point of the brem photon",
+                    "head_DiBremP":"momentum of the brem photon for (p1,p2) system",
+                    "head_Particle_StandaloneBremMultiplicity":"number of brem photons added to the particle momentum for specific particle"
+
+                }
+
+            }
+        }
+    },
+    "TupleToolCaloHypo":{
+        "variables":{
+            "!charged":{
+                "head_hasCaloHypo": "Possible Calo results (0 or 1)",
+                "head_CaloHypo_E": "Calo energy",
+                "head_CaloHypo_X": "Calo X position",
+                "head_CaloHypo_Y": "Calo Y position",
+                "head_CaloHypo_Z": "Calo Z position",
+                "head_CaloHypoPileupEnergy": "Calo pileup energy",
+                "head_CaloHypo_Name[i]" :"Various variables",
+                "!basic":{
+                    "AllowDaugthersHypo":{
+                        "head_CaloHypoDaugh0/1_E": "Calo energy of daughter 0",
+                        "head_CaloHypoDaugh0/1_X": "Calo X position of daughter 0",
+                        "head_CaloHypoDaugh0/1_Y": "Calo Y position of daughter 0",
+                        "head_CaloHypoDaugh0/1_Z": "Calo Z position of daughter 0"
+                    }
+                }
+            },
+            "AllowBremHypo":{
+                "charged":{
+                    "head_hasBremCaloHypo": "Possible Brem Calo results (0 or 1)",
+                    "head_BremCaloHypo_Name[i]": "Various variables"
+                }
+            },
+            "AllowChargedHypo":{
+                "charged":{
+                    "head_CaloHypo_DeltaTheta": "Calo Delta Theta"
+                }
+            },
+            "AllowDaugthersHypo":{
+                "head_CaloHypoDaugh0_Name[i]": "Various variables"
+            }
+
+        }
+
+
+    },
+    "TupleToolCorrectedMass": {
+        "variables":{
+            "head_MCORR":"Corrected mass",
+            "head_MCORRERR":"Corrected mass error",
+            "head_MCORRVERTEXERR":"Corrected mass error, only taking into account the vertex uncertainties",
+            "head_PTREL":"Transverse momentum of the particle with respect to the flight direction"
+        }
+    },
+    "TupleToolDOCA":{
+        "variables":{
+            "head_DOCA_Name":"Distance of closest approach between the two daughters",
+            "head_DOCACHI2_Name":"Distance of closest approach between the two daughters, chi2"
+        }
+    },
+    "TupleToolDira":{
+        "variables":{
+            "charged,head,!basic":{
+                "head_DiraAngle":"The angle between a line drawn from the primary vertex to the decay vertex of the particle and the sum of the 4-momentum of its decay products.",
+                "head_DiraAngleError":"Error on dira angle",
+                "head_DiraCosError":"Error on cos(dira)",
+                "head_DiraCos":"cos(dira)"
+            }
+        }
+    },
+    "TupleToolHOP":{
+        "variables":{
+            "head":{
+                "head_HOP" :"HOP correction, the ratio between the Pt (with respecto to the mothers direction of flight) of electrons and non-electrons",
+                "head_HOP_MASS" :"Mother mass obtained by scalling the electrons P by the hop factor",
+                "head_ELECTRON_MASS": "Mass obtained by summing the four-momenta of all electrons"
+            }
+            
+        }
+    },
+    "TupleToolParticleReFit":{
+        "variables":{
+            "!basic,head":{
+                "head_ExtraNamerefit_status":"Status of the refit",
+                "head_ExtraNamerefit_ENDVERTEX_NDOF":"Number of degrees of freedom of the refit",
+                "head_ExtraNamerefit_ENDVERTEX_CHI2":"Chi2 of the refit",
+                "head_ExtraNamerefit_MM":"Mass of the refit",
+                "head_ExtraNamerefit_MMERR":"Mass error of the refit",
+                "head_ExtraNamerefit_P":"Momentum of the refit",
+                "head_ExtraNamerefit_PT":"Transverse momentum of the refit",
+                "head_ExtraNamerefit_TAU":"Time in ns",
+                "head_ExtraNamerefit_TAUERR":"Time error in ns",
+                "head_ExtraNamerefit_TAUCHI2":"Time chi2"
+            }
+            }
+        },
+    "TupleToolParticleStats":{
+        "variables":{
+            "head":{
+            "event_NumberOfInputLocations":"Number of particles specified in the inputLocations"
+            }
+        }
+    },
+    "TupleToolTrackKink":{
+        "variables":{
+            "!basic":{
+                "head_TRACK_kinkChi2":"Chi2 of the kink fit",
+                "head_TRACK_kinkChi2z":"Z position of the kink",
+                "head_TRACK_kinkFitChi2":"Chi2 of the kink fit",
+                "head_TRACK_kinkFitDeltaR": "Delta R of the kink fit DeltaR = sqrt [( dy/dz - (dy/dz)' )^2 + ( dx/dz - (dx/dz)' )^2 ]",
+                "head_TRACK_kinkFitDeltaRErr": "Error on DeltaR",
+                "head_TRACK_kinkFitDeltaRz":"Z position of the kink"
+            }
+        }
+    },
+    "TupleToolTrackPosition":{
+        "variables":{
+            "head_X" : "x position at given z",
+            "head_Y" : "y position at given z"
+        }
+    },
+    "TupleToolTrackInfo":{
+        "variables":{
+            "head_TRACK_CHI2NDOF" : "CHI2/NDOF of the track",
+            "head_TRACK_TYPE" : "track type",
+            "head_TRACK_PCHI2" : "track Chi2 probability",
+            "head_TRACK_GhostProb" : "Ghost probability (run NeuralNetTmva to fill it)",
+            "head_TRACK_CloneDist" : "Only available for 2009 data",
+            "verbose":{
+                "head_TRACK_CHI2" : "track chi2",
+                "head_TRACK_NDOF" : "track ndof",
+                "head_TRACK_VeloCHI2NDOF" : "Track fit velo chi2/nDoF",
+                "head_TRACK_TCHI2NDOF" : "Track fit T chi2/nDoF",
+                "head_TRACK_VELO_UTID" : "hopefully unique double constructed from multiplying all Velo hit IDs",
+                "head_TRACK_TT_UTID" : "hopefully unique double constructed from multiplying all TT hit IDs",
+                "head_TRACK_IT_UTID" : "hopefully unique double constructed from multiplying all IT hit IDs",
+                "head_TRACK_OT_UTID" : "hopefully unique double constructed from multiplying all OT hit IDs",
+                "head_TRACK_nVeloHits" : "Number of Velo hits on the track",
+                "head_TRACK_nVeloRHits" : "Number of Velo R hits on the track",
+                "head_TRACK_nVeloPhiHits" : "Number of Velo phi hits on the track",
+                "head_TRACK_nVeloPileUpHits" : "Number of Velo pile-up hits on the track",
+                "head_TRACK_nTTHits" : "Number of TT hits on the track",
+                "head_TRACK_nITHits" : "Number of IT hits on the track",
+                "head_TRACK_nOTHits" : "Number of OT hits on the track",
+                "head_TRACK_FirstMeasurementX": "x position of state at 'FirstMeasurement'",
+                "head_TRACK_FirstMeasurementY": "y position of state at 'FirstMeasurement'",
+                "head_TRACK_FirstMeasurementZ": "z position of state at 'FirstMeasurement'",
+                "head_TRACK_History": "Algorithm which the track was made with",
+                "head_TRACK_qOverp" : "q/p of state at 'FirstMeasurement'",
+                "head_TRACK_Tx" : "x slope of state at 'FirstMeasurement'",
+                "head_TRACK_Ty" : "y slope of state at 'FirstMeasurement'"
+            }
+        }
+    },
+
+    "LoKi__Hybrid__TupleTool":{
+        "variables":{
+            "ALL, C++: the instance of LoKi::BooleanConstant<const LHCb::Particle*>(true)":"The most trivial select-all predicate which always returns true",
+            "ABSID, the instance of LoKi::Particles::AbsIdentifier()":"The simple function which returns the absolute value of PDG-identifier of the particle: The special equality/non-equality operators against std::string and LHCb::ParticleID objects are defined: See also ID .",
+            "ADMASS, C++ type LoKi::Particles::AbsDeltaMass":"The simple function which returns the absolute value of the deviation of the particle's mass from some reference value or the nominal mass: The function could be used with various constructors: The later two constructors could be used only if LoKi Service , implementation of LoKi::ILoKiSvc insterface, is active. The function is very convinient to be used in the loops: See also DMASS .",
+            "ADMMASS, C++ type LoKi::Particles::AbsDeltaMeasuredMass":"The simple function which returns the absolute value of the deviation of the particle's measured mass from some refernece value or the nominal mass: The function could be used with various constructors: The later two constructors could be used only if LoKi Service , implementation of LoKi::ILoKiSvc insterface, is active. See also DMMASS .",
+            "BASIC":"It is an alias for ISBASIC , see ISBASIC",
+            "CHILD, C++ type LoKi::Particles::ChildFunction":"The function which delegates the evaluation of another function to the daugher particle: Note: The indices start from 1",
+            "CHILDFUN":"It is an alias for CHILD , see CHILD",
+            "CHILDCUT, C++ type LoKi::Particles::ChildPredicate":"The predicate which delegates the evaluation of another predicate to the daugher particle: Note: The indices start from 1",
+            "CHI2M, C++ type LoKi::Particles::DeltaMeasuredMassChi2":"The simple function which returns the deviation of the the particle's measured mass from some refernece value or the nominal mass in units The function could be used with various constructors: The later two constructors could be used only if LoKi Service , the implementation of LoKi::ILoKiSvc insterface, is active.",
+            "CHI2MASS":"It is an alias for CHI2M , see CHI2M",
+            "CHI2MIP":"It is an alias for MIPCHI2 , see MIPCHI2",
+            "CL, the instance of LoKi::Particles::ConfidenceLevel()":"The simple function which returns the confedence level of the particle:",
+            "CLAPP, C++ type LoKi::Particles::ClosestApproach":"The simple function which evaluated the distance of the closest approach between the particle and some reference particle. IDistanceCalculator is used for the evaluation.",
+            "CLAPPCHI2, C++ type LoKi::Particles::ClosestApproachChi2":"The simple function which evaluated the of the distance of the closest approach between the particle and some reference particle. IDistanceCalculator is used for the evaluation.",
+            "CONFLEV":"It is an alias for CL , see CL",
+            "CONFLEVEL":"It is an alias for CL , see CL",
+            "COUNTER, C++ type LoKi::Monitoring::Counter<const LHCb::Particle*>":"The simple predicate, useful for monitoring of the another predicates. Essentially it monitors the performance (acceptance rate) of another predicate. The generic counter of C++ type StatEntity could be either the local counter owned by the GaudiAlgorithm or GaudiTool base classes, or it could be the counter from IStatSvc or ICounterSvc services. The alternative (and recommended!) way for creation of the monitored predicate is through the function monitor: E.g. in the case of local counter, it could be: The substitution of the predicate could be done on-flight without disturbing of the actual processing: The string representation of the monitored predicate and the unique ID are delegated to the predicate itself, making the object non-reconstructable from its own string representation. It is done on-purpose to avoid any interference and disturbance with the regular procession.",
+            "CTAU":"It is an alias for TIMEDIST , see TIMEDIST",
+            "CTAUDOT":"It is an alias for TDOT , see TDOT",
+            "CTAUSIGN":"It is an alias for TSIGND , see TSIGND",
+            "DANG":"It is an alias for DIRA , see DIRA",
+            "DELTAR2":"It is an alias for DR2 , see DR2",
+            "DETA, C+ type LoKi::Particles::DeltaEta":"The function which returns the value of for the particle's momenta with respect some reference momentum:",
+            "DIRA, C++ type LoKi::Particles::CosineDirectionAngle":"The function evaluates the coside of the angle between the momentum of the particle and the direction vector from some reference vertex or 3D-point to the end-vertex of the particle:",
+            "DMASS, C++ type LoKi::Particles::DeltaMass":"The simple function which returns the deviation of the particle's mass from some refernece value or the nominal mass: The function could be used with various constructors: The later two constructors could be used only if LoKi Service , implementation of LoKi::ILoKiSvc insterface, is active. See also ADMASS .",
+            "DMMASS, C++ type LoKi::Particles::DeltaMeasuredMass":"The simple function which returns the deviation of the particle's measured mass from some refernece value or the nominal mass: The function could be used with various constructors: The later two constructors could be used only if LoKi Service , implementation of LoKi::ILoKiSvc insterface, is active. See also ADMMASS .",
+            "DPHI, C+ type LoKi::Particles::DeltaPhi":"The function which returns the value of for the particle's momenta with respect some reference momentum:",
+            "DR2, C+ type LoKi::Particles::DeltaR2":"The function which returns the value of for the particle's momenta with respect some reference momentum:",
+            "E, the instance of LoKi::Particles::Energy()":"The simple function which returns the value of the particle's energy:",
+            "ETA, the instance of LoKi::Particles::PseudoRapidity()":"The simple function which returns the pseudorapidity:",
+            "EQUALTO, C++ type LoKi::EqualToValue<const LHCb::Particle*>":"The simple predicate which checks if the value of the certain function equal to some predefined value:",
+            "FILTER, C++ type LoKi::Particles::Filter,":"The adapter predicate, which allows to use IFilterCriterion tool as LoKi predicate :",
+            "FROM":"It is an alias for ISINTREE , see ISINTREE",
+            "FROMTREE":"It is an alias for ISINTREE , see ISINTREE",
+            "HASCALOS":"It is an alias for PPHASCALOS , see PPHASCALOS",
+            "HASINFO, C++ type  LoKi::Particles::HasInfo":"The predicate which checks the presence of the entries in extraInfo field of the particle:",
+            "HASKEY, the instance of  LoKi::Particles::HasKey()":"The predicate which returns true if the argument has the assigned key : For invalid arguments false is returned. See also KEY .",
+            "HASMUON":"It is an alias for PPHASMUON , see PPHASMUON",
+            "HASPINFO":"It is an alias for HASINFO , see HASINFO",
+            "HASPROTO, the instance of  LoKi::Particles::HasProto()":"The predicate which check the presence of the protoparticle:",
+            "HASPROTOS, C++ type LoKi::Particles::HasProtos":"The predicate which check the presence the protoparticles from the list:",
+            "HASPROTOSINTREE, C++ type LoKi::Particles::HasProtosInTree":"The predicate which check the presence the protoparticles from the list in thedecay tree of the particles:",
+            "HASRICH":"It is an alias for PPHASRICH , see PPHASRICH",
+            "HASSTATE, C++ type LoKi::Particles::TrackHasState":"The predicate which evaluates LHCb::Track::hasStateAt",
+            "HASTRACKS, C++ type LoKi::Particles::HasTracks":"The predicate which check the presence the tracks from the list:",
+            "HASTRACKSINTREE, C++ type LoKi::Particles::HasTracks":"The predicate which check the presence the tracks from the list in the decay tree of the particle:",
+            "HASVERTEX, the instance of  LoKi::Particles::HasVertex()":"The predicate which check the presence of the vertex:",
+            "ID, the instance of LoKi::Particles::Identifier()":"The simple function which returns the value of PDG-identifier of the particle: The special equality/non-equality operators against std::string and LHCb::ParticleID objects are defined: For the invalid argument LoKi::Constanst::InvalidID is returned. See also ABSID .",
+            "INFO, C++ type LoKi::Particles::Info":"The function which extract extra information using LHCb::Particle::info(...) method:",
+            "INTES,  C++ type LoKi::Particles::InTES":"The predicate which checks the certain the location of particle in Transient Event Store. It is useful to separate the input particles from the different TES locations: The second argument switch on/off the match of the full TES path. The leading /Event/ could be always omitted.",
+            "INTREE,  C++ type LoKi::Particles::InTree":"The predicate which recursively checks the presence in the decay tree of the particle the (grand)-daughter which satisfies the specified criteria:",
+            "IP,  C++ type LoKi::Particles::ImpPar":"The function which calculates the impact parameter of the particle with respect to some vertex or 3D-point using IDistanceCalculator tool:",
+            "IPCHI2,  C++ type LoKi::Particles::ImpParChi2":"The function which calculates the of the impact parameter of the particle with respect to some vertex or 3D-point using IDistanceCalculator tool:",
+            "IPMIN,  C++ type LoKi::Particles::MinImpPar":"The function which calculates the minimum value of the impact parameter of the particle with respect to some set of reference vertices or 3D-point using IDistanceCalculator tool:",
+            "IS,  C++ type LoKi::Particles::IsAParticle":"The predicate which checks if th eparticle is contained in other list:",
+            "ISBASIC, the instance of LoKi::Particles::IsBasic()":"The predicate which checks if the particle is a basic particle , LHCb::Particle::isBasic :",
+            "ISDOWN, the instance of EQUALTO(TRTYPE,LHCb::Track::Downstream)":"The predicate which checks the type of underlying track:",
+            "ISINTREE,  C++ type LoKi::Particles::IsAParticle":"The predicate which checks if the particle or any of its daughters in the list:",
+            "ISLONG, the instance of EQUALTO(TRTYPE,LHCb::Track::Long)":"The predicate which checks the type of underlying track:",
+            "ISMUON, the instance of LoKi::Particles::IsMuon()":"The predicate which checks LHCb::MuonPID::isMuon :",
+            "ISTTRACK, the instance of EQUALTO(TRTYPE,LHCb::Track::Ttrack)":"The predicate which checks the type of underlying track:",
+            "ISUP, the instance of EQUALTO(TRTYPE,LHCb::Track::Upstream)":"The predicate which checks the type of underlying track:",
+            "KEY, the instance of LoKi::Particles::Key()":"The function which returns the value of the assigned key . For invalid arguments, of if no key is assigned LoKi::Constants::InvalidKey is returned. See also HASKEY",
+            "LV0, C++ type LoKi::Particles::DecayAngle,":"The function evaluated the cosine of the angle between the daughters's momentum and the mother flight direction in the rest system of the mother particle. For two-body decays it is just a polarization angle of the mother particle: Note: The name comes from KAL language The indices start from 1",
+            "LV01, the instance of LoKi::Particles::DecayAngle(1),":"The function evaluated the cosine of the angle between the first daughters's momentum and the mother flight direction in the rest system of the mother particle. The name comes from KAL language. See LV0",
+            "LV02, the instance of LoKi::Particles::DecayAngle(2),":"The function evaluated the cosine of the angle between the second daughters's momentum and the mother flight direction in the rest system of the mother particle. The name comes from KAL language. See LV0",
+            "LV03, the instance of LoKi::Particles::DecayAngle(3),":"The function evaluated the cosine of the angle between the third daughters's momentum and the mother flight direction in the rest system of the mother particle. The name comes from KAL language. See LV0",
+            "LV04, the instance of LoKi::Particles::DecayAngle(4),":"The function evaluated the cosine of the angle between the fourth daughters's momentum and the mother flight direction in the rest system of the mother particle. The name comes from KAL language. See LV0",
+            "M, the instance of type LoKi::Particles::Mass()":"The simple function which returns the kinematical mass of the particle , using Gaudi::LorentzVector::Mass method:",
+            "MASS, C++ type LoKi::Particles::InvariantMass":"The simple function which returns the invariant mass of the subcombinations of daughter particles. Note: the indices for daughter particles start from 1 index 0 corresponds to the mother particle itself",
+            "MAXTREE,  C++ type LoKi::Particles::MaxTree":"The function with scans the decay tree and return the maximal value of another function, evaluated for the (grand)daughter particles which satisfy the certain criteria",
+            "MM, the instance of LoKi::Particles::MeasuredMass()":"The simple function which returns the measured mass of the particle, using LHCb::Particle::measuredMass method:",
+            "MINCLAPP, C++ type LoKi::Particles::MinClosestApproach":"The simple function which returns the minimum of the closest approached of the particle against some set of other particles. IDistanceCalculator is used for evaluation.",
+            "MINCLAPPCHI2, C++ type LoKi::Particles::MinClosestApproachChi2":"The simple function which returns the minimum of the closest approached of the particle against some set of other particles. IDistanceCalculator is used for evaluation.",
+            "MINIP":"It is an alias for IPMIN , see IPMIN",
+            "MINTREE,  C++ type LoKi::Particles::MinTree":"The function with scans the decay tree and return the minimal value of another function, evaluated for the (grand)daughter particles which satisfy the certain criteria",
+            "MINVD":"It is an alias for VDMIN , see VDMIN",
+            "MINVDCHI2":"It is an alias for VDMINCHI2 , see VDMINCHI2",
+            "MIP":"It is an alias for IPMIN , see IPMIN",
+            "MIPCHI2,  C++ type LoKi::Particles::MinImpParChi2":"The function which calculates the minimum value of the impact parameter of the particle with respect to some set of reference vertices or 3D-point using IDistanceCalculator tool:",
+            "MULTTREE,  C++ type LoKi::Particles::MultTree":"The function with accumulate (by multiplication) the value of another function for all daughter particles inthe decay tree, which satisfy the certain criteria",
+            "M12, the instance of LoKi::Particles::InvariantMass(1,2)":"The simple function which returns the invariant mass of the first and the second daughter particles See MASS",
+            "M13, the instance of LoKi::Particles::InvariantMass(1,3)":"The simple function which returns the invariant mass of the first and the third daughter particles See MASS",
+            "M14, the instance of LoKi::Particles::InvariantMass(1,4)":"The simple function which returns the invariant mass of the first and the fourth daughter particles See MASS",
+            "M23, the instance of LoKi::Particles::InvariantMass(2,3)":"The simple function which returns the invariant mass of the second and the third daughter particles See MASS",
+            "M24, the instance of LoKi::Particles::InvariantMass(2,4)":"The simple function which returns the invariant mass of the second and the fourth daughter particles See MASS",
+            "M34, the instance of LoKi::Particles::InvariantMass(3,4)":"The simple function which returns the invariant mass of the third and the fourth daughter particles See MASS",
+            "NDAUGS, the instance of LoKi::Particles::NumberOfDaughters()=":"The simple function which return number of daughter particles, LHCb::Particle::daughters().size() :",
+            "NDAUGHTERS":"It is an alias for NDAUGS , see NDAUGS",
+            "NINTREE,  C++ type LoKi::Particles::NinTree":"The function with returns the number of the (grand)daughters inthe decay tree of the particle which satisfies the specified criteria:",
+            "NONE, the instance of LoKi::BooleanConstant<const LHCb::Particle*>(false)":"The most trivial select-none predicate which always returns false",
+            "ONE, the instance of LoKi::Constant<const LHCb::Particle*>(1)":"The trivial function which always returns 1",
+            "P, the instance of type LoKi::Particles::Momentum()":"The simple function which returns the value of the particle's momentum:",
+            "P2, the instance of LoKi::Particles::Momentum2()":"The simple function which returns the squared value of the particle's momentum:",
+            "PALL":"It is an alias for ALL , see ALL",
+            "PFALSE":"It is an alias for NONE , see NONE",
+            "PHASINFO":"It is an alias for HASINFO , see HASINFO",
+            "PHI, the instance of LoKi::Particles::Phi()":"The simple function which returns the asimuthal angle",
+            "PIDe, The instance of LoKi::Particles::ProtoInfo( LHCb::ProtoParticle::CombDLLe , 0 , -1000 )":"Simple function which returns the combined identification for the electron hypothesis: See PPINFO .",
+            "PIDmu, The instance of LoKi::Particles::ProtoInfo( LHCb::ProtoParticle::CombDLLmu , 0 , -1000 )":"Simple function which returns the combined identification for the muon hypothesis: See PPINFO .",
+            "PIDk, The instance of LoKi::Particles::ProtoInfo( LHCb::ProtoParticle::CombDLLk , 0 , -1000 )":"Simple function which returns the combined identification for the kaon hypothesis: See PPINFO .",
+            "PIDp, The instance of LoKi::Particles::ProtoInfo( LHCb::ProtoParticle::CombDLLp , 0 , -1000 )":"Simple function which returns the combined identification for the proton hypothesis: See PPINFO .",
+            "PIDpi, The instance of LoKi::Particles::ProtoInfo( LHCb::ProtoParticle::CombDLLpi , 0 , -1000 )":"Simple function which returns the combined identification for the pion hypothesis: See PPINFO . Note: according to the convention, it is set to 0",
+            "PINFO":"It is an alias for INFO , see INFO",
+            "PINTES":"It is an alias for INTES , see INTES",
+            "PLOT, C++ type LoKi::Monitoring::Plot<const LHCb::Particle*>":"The simple function, useful for monitoring of the another function. Essentially it applies the noather function and fills the histogram with the results. The alternative (and recommended!) way for creation of the monitored function is through the function monitor: The substitution of the function could be done on-flight without disturbing of the actual processing: The string representation of the monitored function and the unique ID are delegated to the function itself, making the object non-reconstructable from its own string representation. It is done on-purpose to avoid any interference and disturbance with the regular procession.",
+            "PNONE":"It is an alias for NONE , see NONE",
+            "PONE":"It is an alias for ONE , see ONE",
+            "PPHASINFO, C++ type LoKi::Particles::ProtoHasInfo":"The simple predicated which checks LHCb::ProtoParticle::hasInfo for the underlying protoparticle:",
+            "PPHASCALOS, The instance of LoKi::Particles::ProtoHasCaloHypos()":"The simple predicated which checks the existence of LHCb::ProtoParticle::calos for the underlying protoparticle:",
+            "PPHASMUON, The instance of LoKi::Particles::ProtoHasMuonPID()":"The simple predicated which checks the existence of LHCb::ProtoParticle::muonPID for the underlying protoparticle:",
+            "PPHASRICH, The instance of LoKi::Particles::ProtoHasRichPID()":"The simple predicated which checks the existence of LHCb::ProtoParticle::richPID for the underlying protoparticle:",
+            "PPINFO, C++ type LoKi::Particles::ProtoInfo":"The function which delegates the evaluation of LHCb::ProtoParticle::info for the underlying protoparticle:",
+            "PROTOS":"It is an alias for HASPROTOS , see HASPROTOS",
+            "PROTOSINTREE":"It is an alias for HASPROTOSINTREE , see HASPROTOSINTREE",
+            "PSAME":"It is an alias for SAME , see SAME",
+            "PSWITCH":"It is an alias for SWITCH , see SWITCH",
+            "PT, the instance of LoKi::Particles::TransverseMomentum()":"The simple function which returns the particle's transverse momentum:",
+            "PTDIR, C++ type LoKi::Particles::TransverseMomentumRel":"The simple function which evaluates the the particle's transverse momentum with respect to some 3D or Lorentz vector:",
+            "PTREL":"It is an alias for PTDIR , see PTDIR",
+            "PTRUE":"It is an alias for ALL , see ALL",
+            "PVALID":"It is an alias for VALID , see VALID",
+            "PVTRACK, C++ type LoKi::Particles::HasTracksFromPV":"The simple predicate which evaluates to true for the basic particle, which directly participate into the primary vertex recontruction:",
+            "PVTRACKINTREE, C++ type LoKi::Particles::HasTracksFromPVInTree":"The simple predicate which evaluates to true for the particles which directly or indirectly participate into the primary vertex recontruction:",
+            "PX, the instance of  LoKi::Particles::MomentumX()":"The simple function which returns X-component of the particle's momentum:",
+            "PY, the instance of LoKi::Particles::MomentumY()":"The simple function which returns Y-component of the particle's momentum: For the invalid argument LoKi::Constanst::InvalidMomentum is returned.",
+            "PZ, the instance of LoKi::Particles::MomentumZ()":"The simple function which returns Z-component of the particle's momentum: For the invalid argument LoKi::Constanst::InvalidMomentum is returned.",
+            "PZERO":"It is an alias for ZERO , see ZERO",
+            "Q, the instance of LoKi::Particles::Charge()":"The function which evaluates the charge of the particle, using the information from LHCb::ParticleID . LoKi::Constants::InvalidCharge is returned for invalid arguments. See also SUMQ",
+            "SAME, C++ type  LoKi::TheSame<const LHCb::Particle>":"The predicate which check if the particle is the same as some reference particle.",
+            "STAT, C++ type LoKi::Monitoring::Stat<const LHCb::Particle*>":"The simple function, useful for monitoring of the another function. Essentially it monitors the results of another function. The generic counter of C++ type StatEntity could be either the local counter owned by the GaudiAlgorithm or GaudiTool base classes, or it could be the counter from IStatSvc or ICounterSvc services. The alternative (and recommended!) way for creation of the monitored function is through the function monitor: E.g. in the case of local counter, it could be: The substitution of the function could be done on-flight without disturbing of the actual processing: The string representation of the monitored function and the unique ID are delegated to the function itself, making the object non-reconstructable from its own string representation. It is done on-purpose to avoid any interference and disturbance with the regular procession.",
+            "SWITCH, C++ type LoKi::Switch<const LHCb::Particle*>":"The function which acts according the rule : result = condition ? function1 : function2 :",
+            "SUMQ, the instance of LoKi::Particles::SumCharge()":"The function which evaluates the charge of the particle. For composed particles the charge is defined as the recursive sum over the charged all daughter particles, for the basic particles the information from LHCb::ParticleID is used See also Q",
+            "SUMTREE,  C++ type LoKi::Particles::SumTree":"The function with accumulate (by addition) the value of another function for all daughter particles inthe decay tree, which satisfy the certain criteria",
+            "TD":"It is an alias for TIMEDIST , see TIMEDIST",
+            "TDIST":"It is an alias for TIMEDIST , see TIMEDIST",
+            "TDSIGN":"It is an alias for TSIGND , see TSIGND",
+            "TIMEDIST, C++ type LoKi::Particles::TimeDistance,":"The function evaluates the proper lifetime of the particle between end-vertex and some reference vertex or 3D-point. The function LoKi::Particles::VertexDistance is used for evaluation of geometry distance.",
+            "TRACKFROMPV":"It is an alias for PVTRACK , see PVTRACK",
+            "TRACKFROMPVINTREE":"It is an alias for PVTRACKINTREE , see PVTRACKINTREE",
+            "TRACKS":"It is an alias for HASTRACKS , see HASTRACKS",
+            "TRACKSINTREE":"It is an alias for HASTRACKSINTREE , see HASTRACKSINTREE",
+            "TRCHI2, the instance of LoKi::Particles::TrackChi2(),":"The function returns LHCb::Track::chi2 for the underlying track:",
+            "TRCHI2DOF, the instance of LoKi::Particles::TrackChi2PerDoF(),":"The function returns LHCb::Track::chi2PerDoF for the underlying track:",
+            "TRHISTORY, the instance of LoKi::Particles::TrackHistory(),":"The function returns LHCb::Track::history for the underlying track:",
+            "TRHISTORYFIT, the instance of LoKi::Particles::TrackHistoryFit(),":"The function returns LHCb::Track::historyFit for the underlying track:",
+            "TRSTATUS, the instance of LoKi::Particles::TrackStatus(),":"The function returns LHCb::Track::status for the underlying track:",
+            "TRTYPE, the instance of LoKi::Particles::TrackType(),":"The function returns LHCb::Track::type for th eunderlying track:",
+            "TSIGND, C++ type LoKi::Particles::TimeSignedDistance,":"The function evaluates the proper lifetime of the particle between end-vertex and some reference vertex or 3D-point. The function LoKi::Particles::VertexSignedDistance is used for evaluation of geometry distance.",
+            "TDOT, C++ type LoKi::Particles::TimeDotDistance,":"The function evaluates the proper lifetime of the particle between end-vertex and some reference vertex or 3D-point along the particle momentum. The function LoKi::Particles::VertexDotDistance is used for evaluation of geometry distance.",
+            "VALID, the instance of LoKi::Valid<const LHCb::Particle*>()":"The trivial predicate which checks the validity of the argument:",
+            "VD, C++ type LoKi::Particles::VertexDistance":"The simple function which evaluates the geometrical 3D-distance between the end-vertex of the particle, , and some reference vertex or 3D-point, , as :",
+            "VDCHI2, C++ type LoKi::Particles::VertexChi2Distance":"The simple function which evaluates the geometrical distance between the end-vertex of the particle, , and some reference vertex or 3D-point, , in units:",
+            "VDDOT, C++ type LoKi::Particles::VertexDotDistance":"The simple function which evaluates the distance between the end-vertex of the particle, , and some reference vertex or 3D-point, , along the particle momentum :",
+            "VDMIN, C++ type LoKi::Particles::MinVertexDistance":"The function which evaluates the minimal distance between the end-vertex of the particle, , and the set of the reference vertices or 3D-points: :",
+            "VDMINCHI2, C++ type LoKi::Particles::MinVertexDistance":"The function which evaluates the minimal chi2-distance between the end-vertex of the particle, , and the set of the reference vertices or 3D-points: :",
+            "VDSIGN, C++ type LoKi::Particles::VertexSignedDistance":"The simple function which evaluates the signed geometrical 3D-distance between the end-vertex of the particle , , and some reference vertex or 3D-point, , the distance is signed according to the sign of :",
+            "VFASPF, C++ type LoKi::Particles::VFunAsPFun":"The adapter function, which applies the vertex function to the end vertex of the given particle:",
+            "VFUNASPFUN":"It is an alias for VFASPF , see VFASPF",
+            "W":"It is an alias for WEIGHT , see WEIGHT",
+            "WEIGHT, the instance of LoKi::Particles::Weight()":"The simple function which returns the weight of the particle, LHCb::Particle::weight :",
+            "ZERO, the instance of LoKi::Constant<const LHCb::Particle*>(0)":"The most trivial function which always returns 0 -- Vanya BELYAEV - 17 Jul 2007"
+
+        }
+    }
+}
+    
+
+
+
+
+
+
+
