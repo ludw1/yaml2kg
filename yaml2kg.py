@@ -16,6 +16,7 @@ option_color = "orange"
 option_value_color = "skyblue"
 particle_color = "red"
 ttcolor = "blue"
+functor_color = "mint"
 
 # file paths
 var_file = r".\json\rest_lessvariables.json"
@@ -131,7 +132,39 @@ def loop_varjson(
                 G.add_node(varexname, color = exp_color, label = varexname)
                 G.add_edge(varname,varexname)
     return label_dict
+def link_loki(G: nx.DiGraph, tool: dict, variables: dict, label_dict: dict) -> dict:
+    """
+    This function is used to link the LoKi functors to the graph.
+    G: The usual nx.DiGraph that contains everything.
+    tool: The current tuple tool dict.
+    variables: The variable dict of the current tuple tool.
+    label_dict: A dictionary that maps uuids to labels.
+    return: The updated label_dict dictionary.
+    """
+    options = (list(tool.values())[0])
+    for option in options:
+        if "Variables" in option:
+            optionname = list(label_dict.keys())[list(label_dict.values()).index(option)]
+            func_dict = options[option]
+            for func in func_dict: # every user defined variable that will be written out
+                funcname = uuid.uuid4()
+                label_dict[funcname] = "{}".format(func)
+                # this creates a node for the user given name with hover data for the loki functor
+                G.add_node(funcname, color = var_color, label = func, expl = func_dict[func])
+                G.add_edge(optionname,funcname)
+                # now match loki functors to documentation
+                split = "".join([x if x.isalpha() else " " for x in func_dict[func]]).split(" ")
+                for lokifunc in split:
+                    if lokifunc:
+                        for var in variables.items():
+                            if lokifunc == var[0].split(",")[0]:
+                                varexplname = uuid.uuid4()
+                                label_dict[varexplname] = "{}".format(lokifunc)
+                                G.add_node(varexplname, color = functor_color, label = lokifunc, expl = var[1])
+                                G.add_edge(funcname,varexplname)
+                                
 
+    return label_dict
 def link_var(G: nx.DiGraph, tool: dict, particle: str) -> dict: 
     """
     Check if the tupletool should be linked to the particle and calls the function that loops through var.json.
@@ -140,24 +173,32 @@ def link_var(G: nx.DiGraph, tool: dict, particle: str) -> dict:
     particle: The current particle name.
     return: The updated label_dict dictionary.
     """
-    with open(var_file) as f:
-        data = json.load(f)
-        variables = data[list(tool.keys())[0].split("/")[0]]["variables"]
-        if isinstance(list(variables.values())[0],dict): # this means that there are no variables which every particle can have
-                    restriction = list(variables.keys())[0] # check if the current particle fulfills restrictions
-                    pconfrom = 1
-                    for res in restriction.split(","): # for multiple restrictions seperated by ","
-                        pprop = G._node[particle][res] if "!" not in res else not G._node[particle][res.replace("!","")] # ! = not (basic e.g.)
-                        pconfrom = pconfrom and pprop
-                    if pconfrom: # if yes, move on as usual
-                        label_dict = create_tuple_tool(G,tool,particle)
-                        tupletoolname = list(label_dict.keys())[list(label_dict.values()).index(list(tool.keys())[0])]
-                    else: # else dont link the tupletool and pass back
-                        return {}
-        else:
-            label_dict = create_tuple_tool(G, tool, particle) # create the tuple tool node
-            tupletoolname = list(label_dict.keys())[list(label_dict.values()).index(list(tool.keys())[0])] # get the tupletool name written in the var.json
-        label_dict = label_dict | loop_varjson(G, tool, particle, variables, label_dict, tupletoolname) # link variables to tuple tool
+    if "LoKi" in list(tool.keys())[0]: # if the tool is a LoKi tool, handle it differently
+        label_dict = create_tuple_tool(G, tool, particle)
+        tupletoolname = list(label_dict.keys())[list(label_dict.values()).index(list(tool.keys())[0])]
+        with open(var_file) as f:
+            data = json.load(f)
+            variables = data["LoKi__Hybrid__TupleTool"]["variables"]
+            label_dict = label_dict | link_loki(G, tool, variables, label_dict)
+    else:
+        with open(var_file) as f:
+            data = json.load(f)
+            variables = data[list(tool.keys())[0].split("/")[0]]["variables"]
+            if isinstance(list(variables.values())[0],dict): # this means that there are no variables which every particle can have
+                        restriction = list(variables.keys())[0] # check if the current particle fulfills restrictions
+                        pconfrom = 1
+                        for res in restriction.split(","): # for multiple restrictions seperated by ","
+                            pprop = G._node[particle][res] if "!" not in res else not G._node[particle][res.replace("!","")] # ! = not (basic e.g.)
+                            pconfrom = pconfrom and pprop
+                        if pconfrom: # if yes, move on as usual
+                            label_dict = create_tuple_tool(G,tool,particle)
+                            tupletoolname = list(label_dict.keys())[list(label_dict.values()).index(list(tool.keys())[0])]
+                        else: # else dont link the tupletool and pass back
+                            return {}
+            else:
+                label_dict = create_tuple_tool(G, tool, particle) # create the tuple tool node
+                tupletoolname = list(label_dict.keys())[list(label_dict.values()).index(list(tool.keys())[0])] # get the tupletool name written in the var.json
+            label_dict = label_dict | loop_varjson(G, tool, particle, variables, label_dict, tupletoolname) # link variables to tuple tool
     return label_dict
     
 
@@ -199,7 +240,7 @@ def link_all(graph: nx.DiGraph, config: dict, apl_tools: list) -> dict:
     label_dict = {} # for pyvis visualization to convert uuids back to readable labels
     for group in list(config["groups"].keys())[::-1]: # go through groups in reverse order
         for tool in config["groups"][group]["tools"][::-1]:
-            toolname = list(tool.keys())[0] + "{}".format(tool[list(tool.keys())[0]]['ExtraName']) # this ensures that the tool has a different name and extra name 
+            toolname = list(tool.keys())[0] + "{}".format(tool[list(tool.keys())[0]].get('ExtraName',"")) # this ensures that the tool has a different name and extra name 
             for particle in group.split(","):
                 if toolname in apl_tools[particle]: # if the tool was already applied, skip it
                     pass
@@ -209,14 +250,14 @@ def link_all(graph: nx.DiGraph, config: dict, apl_tools: list) -> dict:
     for particles in list(config["branches"].items()):
         particle_name = particles[0]
         for tool in particles[1]["tools"][::-1]:
-            toolname = toolname = list(tool.keys())[0] + "{}".format(tool[list(tool.keys())[0]]['ExtraName'])
+            toolname = toolname = list(tool.keys())[0] + "{}".format(tool[list(tool.keys())[0]].get('ExtraName',""))
             if toolname in apl_tools[particle_name]:
                 pass
             else:
                 label_dict = label_dict | link_var(graph,tool,particle_name)
                 apl_tools[particle_name].append(toolname)
     for tool in config["tools"]:
-        toolname = list(tool.keys())[0] + "{}".format(tool[list(tool.keys())[0]]['ExtraName'])
+        toolname = list(tool.keys())[0] + "{}".format(tool[list(tool.keys())[0]].get('ExtraName',""))
         if "Event" in toolname and toolname not in apl_tools[particle]:
             graph.add_node("Event", color = "red", label = "Event")
             graph.add_edge("Event",list(graph.nodes)[0])
@@ -265,6 +306,9 @@ def style_graph(G: nx.DiGraph, label_dict: dict) -> tuple[list, list | None, dic
             elif G.nodes[node]["color"] == option_color:
                 hover_data.append(G.nodes[node]["optval"])
                 G.nodes[node]["title"] = G.nodes[node]["optval"]
+            elif G.nodes[node]["color"] == functor_color:
+                hover_data.append(G.nodes[node]["expl"])
+                G.nodes[node]["title"] = G.nodes[node]["expl"]
             else:
                 hover_data.append(G.nodes[node]["label"])
                 G.nodes[node]["title"] = G.nodes[node]["label"]
