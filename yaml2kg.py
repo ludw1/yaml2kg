@@ -320,7 +320,7 @@ def main(): # opens yaml file, calls every other function
     args = parse_args()
     output = args.output if args.output else r"graph.html"
     yaml_file = args.file
-    pyvis = args.pyvis if args.pyvis else True
+    pyvis = not args.pyvis
     with open(yaml_file,"r") as f:
         config = yaml.safe_load(f)
     decayl = get_mapped_list(config["descriptorTemplate"])
