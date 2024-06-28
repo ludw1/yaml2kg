@@ -183,6 +183,9 @@ def link_var(G: nx.DiGraph, tool: dict, particle: str) -> dict:
     else:
         with open(var_file) as f:
             data = json.load(f)
+            if list(tool.keys())[0].split("/")[0] not in data.keys(): # if the tool is not in the var.json, only add the tuple tool node and the options
+                label_dict = create_tuple_tool(G, tool, particle) # create the tuple tool node
+                return label_dict
             variables = data[list(tool.keys())[0].split("/")[0]]["variables"]
             if isinstance(list(variables.values())[0],dict): # this means that there are no variables which every particle can have
                         restriction = list(variables.keys())[0] # check if the current particle fulfills restrictions
@@ -309,6 +312,8 @@ def style_graph(G: nx.DiGraph, label_dict: dict) -> tuple[list, list | None, dic
             elif G.nodes[node]["color"] == functor_color:
                 hover_data.append(G.nodes[node]["expl"])
                 G.nodes[node]["title"] = G.nodes[node]["expl"]
+            elif G.nodes[node]["color"] == particle_color:
+                G.nodes[node]["title"] = f"{G.nodes[node]['label']} \n Basic: {G.nodes[node]['basic']} \n Head: {G.nodes[node]['head']} \n Charge: {G.nodes[node]['charge']} \n Mass: {round(float(G.nodes[node]['mass']), 2)} MeV"
             else:
                 hover_data.append(G.nodes[node]["label"])
                 G.nodes[node]["title"] = G.nodes[node]["label"]
@@ -335,6 +340,8 @@ def main(): # opens yaml file, calls every other function
             else:
                 graph._node[node]["head"] = 0
             graph._node[node]["charged"] = 1 if data[graph._node[node]["label"]]["charge"] != 0 else 0
+            graph._node[node]["charge"] = data[graph._node[node]["label"]]["charge"]
+            graph._node[node]["mass"] = data[graph._node[node]["label"]]["mass"]
             graph._node[node]["basic"] = 0 if graph.out_degree(node) != 0 else 1
             applied_tupletools[node] = []
 
@@ -363,6 +370,7 @@ def main(): # opens yaml file, calls every other function
         counts = {}
         
         for node in node_l:
+            print(node)
             counts[node["level"]] = counts.get(node["level"], 0) + 1
             node["physics"] = False # disable physics for particles
             node["size"] = 15

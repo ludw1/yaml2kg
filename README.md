@@ -4,7 +4,7 @@ After installing the required python packages using ```pip install -r requiremen
 
 ## To-Dos
 - ~Add support for Loki Hybrid tupletool.~ [Done, see here](https://ludw1.github.io/lokigraph.html)
-- Throw exception when there a tool thats not in the documentation is present in the yaml
+- ~Throw exception when there a tool thats not in the documentation is present in the yaml~ Will now add the TupleTool to the knowledge graph
 - Decide on visual form of the knowledge graph
 
 
