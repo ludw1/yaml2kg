@@ -74,7 +74,7 @@ def build_decay_graph(decay: list) -> nx.DiGraph:
                 graph = get_graph_params(element, graph, sub_parent_id) # call decay tree function with the subarray
             else:
                 params = get_graph_params(element, graph, parent_id)
-                graph.add_node(params['new_node'],label = params['label'], color = particle_color)
+                graph.add_node(params['new_node'],label = params['label'], color = particle_color, type = "particle")
                 if params["new_edge"] != "":
                     graph.add_edge(*params['new_edge'], label = "decays")
                     
@@ -124,12 +124,12 @@ def loop_varjson(
                 if option in var[0]:
                     varname = varname.replace("head",particle+"_"+options["ExtraName"]).replace(option,str(options[option]))
             varexname = variables[var[0]] # get the explanation of the variable
-            G.add_node(varname, color = var_color, label = varname, expl = varexname)
+            G.add_node(varname, color = var_color, label = varname, expl = varexname, type = "variable")
             G.add_edge(tupletoolname,varname)
             if (link_hover): # create a node for the hover data
                 varexname = uuid.uuid4()
                 label_dict[varexname] = "{}".format(variables[var[0]])
-                G.add_node(varexname, color = exp_color, label = varexname)
+                G.add_node(varexname, color = exp_color, label = varexname, type = "explanation")
                 G.add_edge(varname,varexname)
     return label_dict
 def link_loki(G: nx.DiGraph, tool: dict, variables: dict, label_dict: dict) -> dict:
@@ -150,7 +150,7 @@ def link_loki(G: nx.DiGraph, tool: dict, variables: dict, label_dict: dict) -> d
                 funcname = uuid.uuid4()
                 label_dict[funcname] = "{}".format(func)
                 # this creates a node for the user given name with hover data for the loki functor
-                G.add_node(funcname, color = var_color, label = func, expl = func_dict[func])
+                G.add_node(funcname, color = var_color, label = func, expl = func_dict[func], type = "loki_variable")
                 G.add_edge(optionname,funcname)
                 # now match loki functors to documentation
                 split = "".join([x if x.isalpha() else " " for x in func_dict[func]]).split(" ")
@@ -160,7 +160,7 @@ def link_loki(G: nx.DiGraph, tool: dict, variables: dict, label_dict: dict) -> d
                             if lokifunc == var[0].split(",")[0]:
                                 varexplname = uuid.uuid4()
                                 label_dict[varexplname] = "{}".format(lokifunc)
-                                G.add_node(varexplname, color = functor_color, label = lokifunc, expl = var[1])
+                                G.add_node(varexplname, color = functor_color, label = lokifunc, expl = var[1], type = "loki_expl")
                                 G.add_edge(funcname,varexplname)
                                 
 
@@ -215,19 +215,19 @@ def create_tuple_tool(G: nx.DiGraph, tool: dict, particle: str) -> dict:
     uuid_mapping = {}
     # create uuid for every tupletool so they appear distinct in the graph
     ttname = uuid.uuid4()
-    G.add_node(ttname, color = ttcolor)
+    G.add_node(ttname, color = ttcolor, type = "tupletool", lokitool = "LoKi" in tupletoolname)
     G.add_edge(particle, ttname)
     uuid_mapping[ttname] = "{}".format(tupletoolname)
 
     for key in options.keys():
         keyname = uuid.uuid4()
         uuid_mapping[keyname] = "{}".format(key)
-        G.add_node(keyname, color = option_color, optval = str(options[key]))
+        G.add_node(keyname, color = option_color, optval = str(options[key]), type = "option", loki = "LoKi" in tupletoolname)
         G.add_edge(ttname,keyname)
         if(link_hover):
             optionname = uuid.uuid4()
             uuid_mapping[optionname] = "{}".format(str(options[key]))
-            G.add_node(optionname, color = option_value_color) 
+            G.add_node(optionname, color = option_value_color, type = "option_value") 
             G.add_edge(keyname, optionname)
     return uuid_mapping
 
@@ -262,7 +262,7 @@ def link_all(graph: nx.DiGraph, config: dict, apl_tools: list) -> dict:
     for tool in config["tools"]:
         toolname = list(tool.keys())[0] + "{}".format(tool[list(tool.keys())[0]].get('ExtraName',""))
         if "Event" in toolname and toolname not in apl_tools[particle]:
-            graph.add_node("Event", color = "red", label = "Event")
+            graph.add_node("Event", color = "red", label = "Event", type = "event")
             graph.add_edge("Event",list(graph.nodes)[0])
             label_dict = label_dict | link_var(graph,tool,"Event")
         else:
@@ -287,9 +287,9 @@ def style_graph(G: nx.DiGraph, label_dict: dict) -> tuple[list, list | None, dic
             if i > maxi:
                 maxi = i
     for n in G.nodes(): # ensure that variables and explanations are always at the end
-        if G.nodes[n]["color"] == var_color:
+        if G.nodes[n]["type"] == "variable":
             G.nodes[n]["level"] = maxi+1
-        elif G.nodes[n]["color"] == exp_color:
+        elif G.nodes[n]["type"] == "explanation":
             G.nodes[n]["level"] = maxi+2
     pos = nx.multipartite_layout(G, subset_key="level", align="vertical") # get a hierarchichal layout
     for k in pos: # reverse the position so that the root node is at the top
@@ -302,17 +302,19 @@ def style_graph(G: nx.DiGraph, label_dict: dict) -> tuple[list, list | None, dic
     if not link_hover: # set the data on hover
         hover_data = []
         for node in G.nodes():
-            # right now, this uses the colors, but it would be better to give nodes a type attribute
-            if G.nodes[node]["color"] == var_color:
+            if G.nodes[node]["type"] == "variable":
                 hover_data.append(G.nodes[node]["expl"])
                 G.nodes[node]["title"] = G.nodes[node]["expl"]
-            elif G.nodes[node]["color"] == option_color:
+            elif G.nodes[node]["type"] == "option":
                 hover_data.append(G.nodes[node]["optval"])
                 G.nodes[node]["title"] = G.nodes[node]["optval"]
-            elif G.nodes[node]["color"] == functor_color:
+            elif G.nodes[node]["type"] == "loki_variable":
                 hover_data.append(G.nodes[node]["expl"])
                 G.nodes[node]["title"] = G.nodes[node]["expl"]
-            elif G.nodes[node]["color"] == particle_color:
+            elif G.nodes[node]["type"] == "loki_expl":
+                hover_data.append(G.nodes[node]["expl"])
+                G.nodes[node]["title"] = G.nodes[node]["expl"]
+            elif G.nodes[node]["type"] == "particle":
                 G.nodes[node]["title"] = f"{G.nodes[node]['label']} \n Basic: {G.nodes[node]['basic']} \n Head: {G.nodes[node]['head']} \n Charge: {G.nodes[node]['charge']} \n Mass: {round(float(G.nodes[node]['mass']), 2)} MeV"
             else:
                 hover_data.append(G.nodes[node]["label"])
@@ -362,7 +364,7 @@ def main(): # opens yaml file, calls every other function
             width="100%",
             select_menu=True,
             # font_color="#cccccc",
-            filter_menu=True,
+            filter_menu=True
         )
 
         net.from_nx(G)
@@ -384,6 +386,7 @@ def main(): # opens yaml file, calls every other function
                                     node["x"] = counts[node["level"]]*20*i-counts[node["level"]]*20
                                     i += 1
         net.save_graph(output)
+        
     else:
         vis = GraphVisualization(graph, pos, node_text = label_dict, node_text_position= 'top center', node_size= 20, node_color=color_map, node_hover=hover_data)
         fig = vis.create_figure(showlabel=True)
