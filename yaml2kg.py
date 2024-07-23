@@ -7,7 +7,7 @@ import uuid
 from pyvis.network import Network
 import gzip
 import requests
-from line_profiler import profile
+
 restr_label = ["basic","head","charged"] # labels that indicate variables which are restricted to certain particles
 
 # node colors
@@ -23,8 +23,16 @@ functor_color = "mint"
 var_file = r".\json\rest_lessvariables.json"
 config_file = "config.yaml"
 files = {}
-#options
+
+# options
 link_hover  = False # create nodes from hover data
+
+def parse_args():
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(prog = "yaml2kg", description="Create a graph from a yaml file.")
+    parser.add_argument("file", type=str, help="The path to the yaml file.")
+    parser.add_argument("-o", "--output", type=str, help="The path to the output file. Defaults to graph.html.")
+    return parser.parse_args()
 
 def get_metadata() -> bool:
     """
@@ -37,19 +45,12 @@ def get_metadata() -> bool:
     for file in config['filenames']:
         response = requests.get(config['backend_url'] + list(file.values())[0] + ".json.gz", headers = {"Accept-Encoding": "gzip"})
         if response.status_code == 200:
-            data = str(gzip.decompress(response.content), "utf-8")
-            files[list(file.keys())[0]] = json.loads(data)
+            data = str(gzip.decompress(response.content), "utf-8") # decode gzip file
+            files[list(file.keys())[0]] = json.loads(data) # turn string back into dict
         else:
             print(f"Error: {response.status_code}")
             return False
     return True
-def parse_args():
-    """Parse command line arguments."""
-    parser = argparse.ArgumentParser(prog = "yaml2kg", description="Create a graph from a yaml file.")
-    parser.add_argument("file", type=str, help="The path to the yaml file.")
-    parser.add_argument("-o", "--output", type=str, help="The path to the output file. Defaults to graph.html.")
-    return parser.parse_args()
-
 def get_mapped_list(decay_temp: str) -> list:
     """Get the mapped list from the decay file. This takes the str from the yaml.
     decay_temp: The decay template from the yaml file.
@@ -312,8 +313,9 @@ def style_graph(G: nx.DiGraph, label_dict: dict):
             else:
                 G.nodes[node]["title"] = G.nodes[node]["label"]
     
-@profile
-def main(): # opens yaml file, calls every other function
+def main(): 
+    """Opens NTuple Wizrad yaml file, calls every other function.
+    """
     args = parse_args()
     output = args.output if args.output else r"graph.html"
     yaml_file = args.file
@@ -378,5 +380,3 @@ def main(): # opens yaml file, calls every other function
 
 if __name__ == "__main__":
     main()
-
-
