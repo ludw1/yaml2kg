@@ -5,8 +5,9 @@ import argparse
 import networkx as nx
 import uuid
 from pyvis.network import Network
-from visual import GraphVisualization
-
+import gzip
+import requests
+from line_profiler import profile
 restr_label = ["basic","head","charged"] # labels that indicate variables which are restricted to certain particles
 
 # node colors
@@ -20,32 +21,44 @@ functor_color = "mint"
 
 # file paths
 var_file = r".\json\rest_lessvariables.json"
-prop_file =r".\json\particle_properties.json"
-decay_file =r".\json\decays.json"
-
-
+config_file = "config.yaml"
+files = {}
 #options
 link_hover  = False # create nodes from hover data
 
-
+def get_metadata() -> bool:
+    """
+    Function that fetches the metadata from the backend.
+    Uses the config file to get the filenames and the backend url.
+    Data stored in global file object.
+    return: True if successful, False otherwise."""
+    with open(config_file,"r") as f:
+        config = yaml.safe_load(f)
+    for file in config['filenames']:
+        response = requests.get(config['backend_url'] + list(file.values())[0] + ".json.gz", headers = {"Accept-Encoding": "gzip"})
+        if response.status_code == 200:
+            data = str(gzip.decompress(response.content), "utf-8")
+            files[list(file.keys())[0]] = json.loads(data)
+        else:
+            print(f"Error: {response.status_code}")
+            return False
+    return True
 def parse_args():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(prog = "yaml2kg", description="Create a graph from a yaml file.")
     parser.add_argument("file", type=str, help="The path to the yaml file.")
     parser.add_argument("-o", "--output", type=str, help="The path to the output file. Defaults to graph.html.")
-    parser.add_argument("-p", "--pyvis", action="store_true", help="Use pyvis (default) for visualization, if false use plotly.")
     return parser.parse_args()
 
 def get_mapped_list(decay_temp: str) -> list:
     """Get the mapped list from the decay file. This takes the str from the yaml.
     decay_temp: The decay template from the yaml file.
     return: The mapped list from the decay file."""
-    with open(decay_file, "rb") as f:
-            data = json.load(f)
-            for i in list(data.values()):
-                desc = i["descriptors"]
-                if decay_temp == desc["template"]:
-                    return desc["mapped_list"]
+    data = files['decay_file']
+    for i in list(data.values()):
+        desc = i["descriptors"]
+        if decay_temp == desc["template"]:
+            return desc["mapped_list"]
                 
 def build_decay_graph(decay: list) -> nx.DiGraph:
     """
@@ -53,14 +66,13 @@ def build_decay_graph(decay: list) -> nx.DiGraph:
     param decay: A nested list of particles, where a nested list indicates a subdecay. Each particle has a branch and a particle name.
     return: A nx.DiGraph object representing the decay tree.""" 
 
-    def get_graph_params(term: list, graph: nx.DiGraph, parent_id: str) -> nx.DiGraph:
+    def get_graph_params(term: list | dict, graph: nx.DiGraph, parent_id: str) -> nx.DiGraph:
         """
         Recursive function that constructs the decay tree.
         term: A list of particles, where nesting indicates a subdecay.
         graph: The current nx.DiGraph object.
         parent_id: The name of the current decay head.
         return: The updated nx.DiGraph object."""
-
         if not isinstance(term, list): # if term / the particle is not a list then turn into a node and connect to the decay head
             branch,particle = term.values() # branch is unique, so use it for nodes
             new_node = f"{branch}"
@@ -240,7 +252,7 @@ def link_all(graph: nx.DiGraph, config: dict, apl_tools: list) -> dict:
     apl_tools: A list of all applied tools.
     return: The updated label_dict dictionary.
     """
-    label_dict = {} # for pyvis visualization to convert uuids back to readable labels
+    label_dict = {} # keeps track of uuids 
     for group in list(config["groups"].keys())[::-1]: # go through groups in reverse order
         for tool in config["groups"][group]["tools"][::-1]:
             toolname = list(tool.keys())[0] + "{}".format(tool[list(tool.keys())[0]].get('ExtraName',"")) # this ensures that the tool has a different name and extra name 
@@ -262,7 +274,7 @@ def link_all(graph: nx.DiGraph, config: dict, apl_tools: list) -> dict:
     for tool in config["tools"]:
         toolname = list(tool.keys())[0] + "{}".format(tool[list(tool.keys())[0]].get('ExtraName',""))
         if "Event" in toolname and toolname not in apl_tools[particle]:
-            graph.add_node("Event", color = "red", label = "Event", type = "event")
+            graph.add_node("Event", color = "red", label = "Event", type = "particle")
             graph.add_edge("Event",list(graph.nodes)[0])
             label_dict = label_dict | link_var(graph,tool,"Event")
         else:
@@ -274,123 +286,95 @@ def link_all(graph: nx.DiGraph, config: dict, apl_tools: list) -> dict:
                     apl_tools[particle].append(toolname)
     return label_dict
 
-def style_graph(G: nx.DiGraph, label_dict: dict) -> tuple[list, list | None, dict]:
+def style_graph(G: nx.DiGraph, label_dict: dict):
     """
     Makes the graph pretty.
     G: The nx.DiGraph object representing the decay tree.
     label_dict: A dictionary that maps uuids to labels.
-    return: A list of colors, a list of hover data and a dictionary of positions."""
+    """
     maxi = 0 # maximum depth of the graph
     for i, layer in enumerate(nx.topological_generations(G)):
         for n in layer:
             G.nodes[n]["level"] = i
             if i > maxi:
                 maxi = i
-    for n in G.nodes(): # ensure that variables and explanations are always at the end
-        if G.nodes[n]["type"] == "variable":
-            G.nodes[n]["level"] = maxi+1
-        elif G.nodes[n]["type"] == "explanation":
-            G.nodes[n]["level"] = maxi+2
-    pos = nx.multipartite_layout(G, subset_key="level", align="vertical") # get a hierarchichal layout
-    for k in pos: # reverse the position so that the root node is at the top
-        pos[k][-1] *= -1
-    color_map = [a for a in nx.get_node_attributes(G,"color").values()] # color map needed for a plotly visualization
-
     for node, label in label_dict.items(): # needed for pyvis as it cant use the label dict
         G.nodes[node]["label"] = str(label)
 
     if not link_hover: # set the data on hover
-        hover_data = []
         for node in G.nodes():
-            if G.nodes[node]["type"] == "variable":
-                hover_data.append(G.nodes[node]["expl"])
+            if G.nodes[node]["type"] in ["variable", "loki_variable", "loki_expl"]:
                 G.nodes[node]["title"] = G.nodes[node]["expl"]
             elif G.nodes[node]["type"] == "option":
-                hover_data.append(G.nodes[node]["optval"])
                 G.nodes[node]["title"] = G.nodes[node]["optval"]
-            elif G.nodes[node]["type"] == "loki_variable":
-                hover_data.append(G.nodes[node]["expl"])
-                G.nodes[node]["title"] = G.nodes[node]["expl"]
-            elif G.nodes[node]["type"] == "loki_expl":
-                hover_data.append(G.nodes[node]["expl"])
-                G.nodes[node]["title"] = G.nodes[node]["expl"]
-            elif G.nodes[node]["type"] == "particle":
+            elif G.nodes[node]["type"] == "particle" and G.nodes[node]["label"] != "Event":
                 G.nodes[node]["title"] = f"{G.nodes[node]['label']} \n Basic: {G.nodes[node]['basic']} \n Head: {G.nodes[node]['head']} \n Charge: {G.nodes[node]['charge']} \n Mass: {round(float(G.nodes[node]['mass']), 2)} MeV"
             else:
-                hover_data.append(G.nodes[node]["label"])
                 G.nodes[node]["title"] = G.nodes[node]["label"]
-    else:
-        hover_data = None
-    return color_map,hover_data,pos
-
+    
+@profile
 def main(): # opens yaml file, calls every other function
     args = parse_args()
     output = args.output if args.output else r"graph.html"
     yaml_file = args.file
-    pyvis = not args.pyvis
+    if not get_metadata():
+        print("Error: Could not fetch metadata.")
+        return
     with open(yaml_file,"r") as f:
         config = yaml.safe_load(f)
     decayl = get_mapped_list(config["descriptorTemplate"])
 
     applied_tupletools = {}
     graph = build_decay_graph(decayl) # construct decay graph
-    with open(prop_file) as f: # edit particle properties
-        data = json.load(f)
-        for node in graph.nodes():
-            if node == list(graph.nodes)[0]:
-                graph._node[node]["head"] = 1
-            else:
-                graph._node[node]["head"] = 0
-            graph._node[node]["charged"] = 1 if data[graph._node[node]["label"]]["charge"] != 0 else 0
-            graph._node[node]["charge"] = data[graph._node[node]["label"]]["charge"]
-            graph._node[node]["mass"] = data[graph._node[node]["label"]]["mass"]
-            graph._node[node]["basic"] = 0 if graph.out_degree(node) != 0 else 1
-            applied_tupletools[node] = []
-
+    data = files['prop_file'] # edit particle properties
+    for node in graph.nodes():
+        if node == list(graph.nodes)[0]:
+            graph._node[node]["head"] = 1
+        else:
+            graph._node[node]["head"] = 0
+        graph._node[node]["charged"] = 1 if data[graph._node[node]["label"]]["charge"] != 0 else 0
+        graph._node[node]["charge"] = data[graph._node[node]["label"]]["charge"]
+        graph._node[node]["mass"] = data[graph._node[node]["label"]]["mass"]
+        graph._node[node]["basic"] = 0 if graph.out_degree(node) != 0 else 1
+        applied_tupletools[node] = []
+    files.clear() # clear the files to save memory, as decay file is ~50 MB
 
     label_dict = link_all(graph,config,applied_tupletools) # link all tupletools, variables etc.
-    color_map,hover_data,pos = style_graph(graph,label_dict)
+    style_graph(graph,label_dict)
 
     # draw graph
-    if pyvis:
-        G = nx.convert_node_labels_to_integers(graph)
-        
+    G = nx.convert_node_labels_to_integers(graph)
+    
 
-        net = Network(
-            notebook=False,
-            # bgcolor="#1a1a1a",
-            cdn_resources="remote",
-            height="900px",
-            width="100%",
-            select_menu=True,
-            # font_color="#cccccc",
-            filter_menu=True
-        )
+    net = Network(
+        notebook=False,
+        # bgcolor="#1a1a1a",
+        cdn_resources="remote",
+        height="900px",
+        width="100%",
+        select_menu=True,
+        # font_color="#cccccc",
+        filter_menu=True
+    )
 
-        net.from_nx(G)
-        node_l = [node for node in list(net.nodes) if node["color"] == particle_color]
-        counts = {}
-        
-        for node in node_l:
-            print(node)
-            counts[node["level"]] = counts.get(node["level"], 0) + 1
-            node["physics"] = False # disable physics for particles
-            node["size"] = 15
-        net.force_atlas_2based(central_gravity=0.01, gravity=-31,overlap = 1)
-        for level in sorted(counts): # this is so that the particles are aligned in a decay tree
-                i = 0
-                for node in net.nodes:
-                        if node["color"] == particle_color:
-                            if node["level"] == level:
-                                    node["y"] = node["level"]*200-1000
-                                    node["x"] = counts[node["level"]]*20*i-counts[node["level"]]*20
-                                    i += 1
-        net.save_graph(output)
-        
-    else:
-        vis = GraphVisualization(graph, pos, node_text = label_dict, node_text_position= 'top center', node_size= 20, node_color=color_map, node_hover=hover_data)
-        fig = vis.create_figure(showlabel=True)
-        fig.write_html(output)
+    net.from_nx(G)
+    node_l = [node for node in list(net.nodes) if node["type"] == "particle"]
+    counts = {}
+    
+    for node in node_l:
+        counts[node["level"]] = counts.get(node["level"], 0) + 1
+        node["physics"] = False # disable physics for particles
+        node["size"] = 15
+    net.force_atlas_2based(central_gravity=0.01, gravity=-31,overlap = 1)
+    for level in sorted(counts): # this is so that the particles are aligned in a decay tree
+            i = 0
+            for node in net.nodes:
+                    if node["color"] == particle_color:
+                        if node["level"] == level:
+                                node["y"] = node["level"]*200-1000
+                                node["x"] = counts[node["level"]]*20*i-counts[node["level"]]*20
+                                i += 1
+    net.save_graph(output)
 
 if __name__ == "__main__":
     main()

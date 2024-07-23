@@ -1,0 +1,6 @@
+backend_url: https://lbwizard-metadata.web.cern.ch/2.0.1/
+filenames:
+  - prop_file:
+      particle_properties
+  - decay_file:
+      decays
