@@ -20,10 +20,9 @@ ttcolor = "blue"
 functor_color = "mint"
 
 # file paths
-var_file = r".\json\rest_lessvariables.json"
 config_file = "config.yaml"
 files = {}
-
+var_file = {}
 # options
 link_hover  = False # create nodes from hover data
 
@@ -50,6 +49,8 @@ def get_metadata() -> bool:
         else:
             print(f"Error: {response.status_code}")
             return False
+    global var_file 
+    var_file = files["var_file"]
     return True
 def get_mapped_list(decay_temp: str) -> list:
     """Get the mapped list from the decay file. This takes the str from the yaml.
@@ -166,7 +167,7 @@ def link_loki(G: nx.DiGraph, tool: dict, variables: dict, label_dict: dict) -> d
                 G.add_node(funcname, color = var_color, label = func, expl = func_dict[func], type = "loki_variable")
                 G.add_edge(optionname,funcname)
                 # now match loki functors to documentation
-                split = "".join([x if x.isalpha() else " " for x in func_dict[func]]).split(" ")
+                split = "".join([x if x.isalnum() else " " for x in func_dict[func]]).split(" ")
                 for lokifunc in split:
                     if lokifunc:
                         for var in variables.items():
@@ -186,35 +187,33 @@ def link_var(G: nx.DiGraph, tool: dict, particle: str) -> dict:
     particle: The current particle name.
     return: The updated label_dict dictionary.
     """
+    global var_file
     if "LoKi" in list(tool.keys())[0]: # if the tool is a LoKi tool, handle it differently
         label_dict = create_tuple_tool(G, tool, particle)
         tupletoolname = list(label_dict.keys())[list(label_dict.values()).index(list(tool.keys())[0])]
-        with open(var_file) as f:
-            data = json.load(f)
-            variables = data["LoKi__Hybrid__TupleTool"]["variables"]
-            label_dict = label_dict | link_loki(G, tool, variables, label_dict)
+        variables = var_file["LoKi_functors"]
+        label_dict = label_dict | link_loki(G, tool, variables, label_dict)
     else:
-        with open(var_file) as f:
-            data = json.load(f)
-            if list(tool.keys())[0].split("/")[0] not in data.keys(): # if the tool is not in the var.json, only add the tuple tool node and the options
-                label_dict = create_tuple_tool(G, tool, particle) # create the tuple tool node
-                return label_dict
-            variables = data[list(tool.keys())[0].split("/")[0]]["variables"]
-            if isinstance(list(variables.values())[0],dict): # this means that there are no variables which every particle can have
-                        restriction = list(variables.keys())[0] # check if the current particle fulfills restrictions
-                        pconfrom = 1
-                        for res in restriction.split(","): # for multiple restrictions seperated by ","
-                            pprop = G._node[particle][res] if "!" not in res else not G._node[particle][res.replace("!","")] # ! = not (basic e.g.)
-                            pconfrom = pconfrom and pprop
-                        if pconfrom: # if yes, move on as usual
-                            label_dict = create_tuple_tool(G,tool,particle)
-                            tupletoolname = list(label_dict.keys())[list(label_dict.values()).index(list(tool.keys())[0])]
-                        else: # else dont link the tupletool and pass back
-                            return {}
-            else:
-                label_dict = create_tuple_tool(G, tool, particle) # create the tuple tool node
-                tupletoolname = list(label_dict.keys())[list(label_dict.values()).index(list(tool.keys())[0])] # get the tupletool name written in the var.json
-            label_dict = label_dict | loop_varjson(G, tool, particle, variables, label_dict, tupletoolname) # link variables to tuple tool
+        data = var_file
+        if list(tool.keys())[0].split("/")[0] not in data.keys(): # if the tool is not in the var.json, only add the tuple tool node and the options
+            label_dict = create_tuple_tool(G, tool, particle) # create the tuple tool node
+            return label_dict
+        variables = data[list(tool.keys())[0].split("/")[0]]["variables"]
+        if isinstance(list(variables.values())[0],dict): # this means that there are no variables which every particle can have
+                    restriction = list(variables.keys())[0] # check if the current particle fulfills restrictions
+                    pconfrom = 1
+                    for res in restriction.split(","): # for multiple restrictions seperated by ","
+                        pprop = G._node[particle][res] if "!" not in res else not G._node[particle][res.replace("!","")] # ! = not (basic e.g.)
+                        pconfrom = pconfrom and pprop
+                    if pconfrom: # if yes, move on as usual
+                        label_dict = create_tuple_tool(G,tool,particle)
+                        tupletoolname = list(label_dict.keys())[list(label_dict.values()).index(list(tool.keys())[0])]
+                    else: # else dont link the tupletool and pass back
+                        return {}
+        else:
+            label_dict = create_tuple_tool(G, tool, particle) # create the tuple tool node
+            tupletoolname = list(label_dict.keys())[list(label_dict.values()).index(list(tool.keys())[0])] # get the tupletool name written in the var.json
+        label_dict = label_dict | loop_varjson(G, tool, particle, variables, label_dict, tupletoolname) # link variables to tuple tool
     return label_dict
     
 
