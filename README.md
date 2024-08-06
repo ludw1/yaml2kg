@@ -1,4 +1,4 @@
-This script converts yaml files to a knowledge graph html. It utilizes the storage of the documentation in a context-aware data format seen in [this json file](json/rest_lessvariables.json).
+This script converts yaml files to a knowledge graph html. It utilizes the storage of the documentation in a context-aware data format seen in [this json file](https://github.com/ludw1/yaml2kg/blob/plotly_script/json/rest_lessvariables.json).
 ## Usage
 1. Install required python packages using pip install -r requirements.txt
 2. Call the script with the yaml file as the positional argument and optionally the -o flag to specify the output html name: ```python yaml2kg.py myyaml.yaml -o kg.html```
