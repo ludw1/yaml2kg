@@ -20,7 +20,7 @@ ttcolor = "blue"
 functor_color = "mint"
 
 # file paths
-config_file = "config.yaml"
+config = {"backend_url": "https://lbwizard-metadata.web.cern.ch/master/", "filenames": [{"prop_file": "particle_properties"}, {"decay_file": "decays"}, {"var_file": "kgdoc"}]}
 files = {}
 var_file = {}
 # options
@@ -42,9 +42,7 @@ def get_metadata() -> bool:
     Returns:
         bool: True if successful, False otherwise.
     """
-
-    with open(config_file,"r") as f:
-        config = yaml.safe_load(f)
+    global config
     for file in config['filenames']:
         response = requests.get(config['backend_url'] + list(file.values())[0] + ".json.gz", headers = {"Accept-Encoding": "gzip"})
         if response.status_code == 200:

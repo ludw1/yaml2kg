@@ -1,8 +1,0 @@
-backend_url: https://lbwizard-metadata.web.cern.ch/master/
-filenames:
-  - prop_file:
-      particle_properties
-  - decay_file:
-      decays
-  - var_file:
-      kgdoc
