@@ -28,17 +28,21 @@ link_hover  = False # create nodes from hover data
 
 def parse_args():
     """Parse command line arguments."""
+
     parser = argparse.ArgumentParser(prog = "yaml2kg", description="Create a graph from a yaml file.")
     parser.add_argument("file", type=str, help="The path to the yaml file.")
     parser.add_argument("-o", "--output", type=str, help="The path to the output file. Defaults to graph.html.")
     return parser.parse_args()
 
 def get_metadata() -> bool:
-    """
-    Function that fetches the metadata from the backend.
+    """Function that fetches the metadata from the backend.
     Uses the config file to get the filenames and the backend url.
     Data stored in global file object.
-    return: True if successful, False otherwise."""
+
+    Returns:
+        bool: True if successful, False otherwise.
+    """
+
     with open(config_file,"r") as f:
         config = yaml.safe_load(f)
     for file in config['filenames']:
@@ -49,38 +53,51 @@ def get_metadata() -> bool:
         else:
             print(f"Error: {response.status_code}")
             return False
-    global var_file 
+    global var_file
     var_file = files["var_file"]
     return True
 def get_mapped_list(decay_temp: str) -> list:
     """Get the mapped list from the decay file. This takes the str from the yaml.
-    decay_temp: The decay template from the yaml file.
-    return: The mapped list from the decay file."""
+
+    Args:
+        decay_temp (str): The decay template from the yaml file.
+    Returns:
+        list: The mapped list from the decay file.
+    """
+
     data = files['decay_file']
     for i in list(data.values()):
         desc = i["descriptors"]
         if decay_temp == desc["template"]:
             return desc["mapped_list"]
-                
+    return []
 def build_decay_graph(decay: list) -> nx.DiGraph:
-    """
-    This constructs a nx.DiGraph from a nested decay list. 
-    param decay: A nested list of particles, where a nested list indicates a subdecay. Each particle has a branch and a particle name.
-    return: A nx.DiGraph object representing the decay tree.""" 
+    """This constructs a nx.DiGraph from a nested decay list.
 
-    def get_graph_params(term: list | dict, graph: nx.DiGraph, parent_id: str) -> nx.DiGraph:
+    Args:
+        decay (list): A nested list of particles, where a nested list indicates a subdecay. Each particle has a branch and a particle name.
+
+    Returns:
+        nx.DiGraph: A nx.DiGraph object representing the decay tree.
+    """
+    def get_graph_params(term: list | dict, graph: nx.DiGraph, parent_id: int) -> nx.DiGraph:
+        """Recursive function that constructs the decay tree.
+
+        Args:
+            term (list | dict): A list of particles, where nesting indicates a subdecay.
+            graph (nx.DiGraph): The current nx.DiGraph object.
+            parent_id (str): The name of the current decay head.
+
+        Returns:
+            nx.DiGraph: The updated nx.DiGraph object.
         """
-        Recursive function that constructs the decay tree.
-        term: A list of particles, where nesting indicates a subdecay.
-        graph: The current nx.DiGraph object.
-        parent_id: The name of the current decay head.
-        return: The updated nx.DiGraph object."""
+
         if not isinstance(term, list): # if term / the particle is not a list then turn into a node and connect to the decay head
             branch,particle = term.values() # branch is unique, so use it for nodes
             new_node = f"{branch}"
             label = f"{particle}" # use particle name for label
             new_edge = "" if parent_id == 0 else (f"{parent_id}",f"{branch}") # dont connect the decay head to anything
-            return {'new_node': new_node, 'new_edge': new_edge, 'label':label}
+            return {'new_node': new_node, 'new_edge': new_edge, 'label':label} # type: ignore
 
         for element in term:
             if isinstance(element, list): # if there are subdecays
@@ -91,7 +108,7 @@ def build_decay_graph(decay: list) -> nx.DiGraph:
                 graph.add_node(params['new_node'],label = params['label'], color = particle_color, type = "particle")
                 if params["new_edge"] != "":
                     graph.add_edge(*params['new_edge'], label = "decays")
-                    
+
         return graph
     G = nx.DiGraph()
     graph = get_graph_params(decay, G, 0)
@@ -99,36 +116,40 @@ def build_decay_graph(decay: list) -> nx.DiGraph:
 
 
 def loop_varjson(
-        G: nx.DiGraph, 
-        tool: dict, 
-        particle: str, 
-        variables: dict, 
+        G: nx.DiGraph,
+        tool: dict,
+        particle: str,
+        variables: dict,
         label_dict: dict,
         tupletoolname: uuid.UUID
     ) -> dict:
+    """Recursive function that loops through the documentation file and links the variables to the TupleTool.
+
+    Args:
+        G (nx.DiGraph): The nx.DiGraph object representing the decay tree. Will be modified in place so no need to return it.
+        tool (dict): The current TupleTool. Dict with the name of the tool as key and option:value pairs as values.
+        particle (str): The current particle name.
+        variables (dict): The variable dict of the current TupleTool.
+        label_dict (dict): A dictionary that maps uuids to labels.
+        tupletoolname (uuid.UUID): The UUID of the current TupleTool.
+
+    Returns:
+        dict: The updated label_dict dictionary.
     """
-    Recursive function that loops through the documentation file and links the variables to the tuple tool.
-    G: The nx.DiGraph object representing the decay tree. Will be modified in place so no need to return it.
-    tool: The current tuple tool. Dict with the name of the tool as key and option:value pairs as values.
-    particle: The current particle name.
-    variables: The variable dict of the current tuple tool.
-    label_dict: A dictionary that maps uuids to labels.
-    tupletoolname: The UUID of the current tuple tool.
-    return: The updated label_dict dictionary."""
-    
-    options = (list(tool.values())[0]) # options of the tupletool
+
+    options = (list(tool.values())[0]) # options of the TupleTool
     for var in variables.items(): # check all variables
         if isinstance(var[1],dict): # if the variable is a dict, it is either locked behind an option or a restriction
             if (var[0].split(",")[0].replace("!","") not in restr_label): # if it is not a restriction check if the option is true
                 for option in options:
                     if option in list(variables.keys()):
                         if options[option]:
-                            loop_varjson(G,tool,particle,variables[option],label_dict,tupletoolname) # recursively go through 
+                            loop_varjson(G,tool,particle,variables[option],label_dict,tupletoolname) # recursively go through
             else:
                 restriction = var[0] # the variable name
                 pconfrom = 1
                 for res in restriction.split(","): #check if each restriction is fulfilled
-                    pprop = G._node[particle][res] if "!" not in res else not G._node[particle][res.replace("!","")]                        
+                    pprop = G._node[particle][res] if "!" not in res else not G._node[particle][res.replace("!","")]
                     pconfrom = pconfrom and pprop
                 if pconfrom:
                     loop_varjson(G,tool,particle,variables[var[0]],label_dict,tupletoolname) # if yes, go through the variables
@@ -147,14 +168,18 @@ def loop_varjson(
                 G.add_edge(varname,varexname)
     return label_dict
 def link_loki(G: nx.DiGraph, tool: dict, variables: dict, label_dict: dict) -> dict:
+    """Links the LoKi functors to the graph, as they need to be handled differently.
+
+    Args:
+        G (nx.DiGraph): The nx.DiGraph object representing the decay tree.
+        tool (dict): The current TupleTool dict.
+        variables (dict): The variable dict of the current TupleTool.
+        label_dict (dict): A dictionary that maps uuids to labels.
+
+    Returns:
+        dict: The updated label_dict dictionary.
     """
-    This function is used to link the LoKi functors to the graph.
-    G: The usual nx.DiGraph that contains everything.
-    tool: The current tuple tool dict.
-    variables: The variable dict of the current tuple tool.
-    label_dict: A dictionary that maps uuids to labels.
-    return: The updated label_dict dictionary.
-    """
+
     options = (list(tool.values())[0])
     for option in options:
         if "Variables" in option:
@@ -176,27 +201,29 @@ def link_loki(G: nx.DiGraph, tool: dict, variables: dict, label_dict: dict) -> d
                                 label_dict[varexplname] = "{}".format(lokifunc)
                                 G.add_node(varexplname, color = functor_color, label = lokifunc, expl = var[1], type = "loki_expl")
                                 G.add_edge(funcname,varexplname)
-                                
-
     return label_dict
-def link_var(G: nx.DiGraph, tool: dict, particle: str) -> dict: 
+def link_var(G: nx.DiGraph, tool: dict, particle: str) -> dict:
+    """Checks if the TupleTool should be linked to the particle and calls the function that loops through var.json.
+
+    Args:
+        G (nx.DiGraph): The usual nx.DiGraph that contains everything.
+        tool (dict): The current TupleTool dict.
+        particle (str): The current particle name.
+
+    Returns:
+        dict: The updated label_dict dictionary.
     """
-    Check if the tupletool should be linked to the particle and calls the function that loops through var.json.
-    G: The usual nx.DiGraph that contains everything.
-    tool: The current tuple tool dict.
-    particle: The current particle name.
-    return: The updated label_dict dictionary.
-    """
+
     global var_file
     if "LoKi" in list(tool.keys())[0]: # if the tool is a LoKi tool, handle it differently
-        label_dict = create_tuple_tool(G, tool, particle)
+        label_dict = create_tupletool(G, tool, particle)
         tupletoolname = list(label_dict.keys())[list(label_dict.values()).index(list(tool.keys())[0])]
         variables = var_file["LoKi_functors"]
         label_dict = label_dict | link_loki(G, tool, variables, label_dict)
     else:
         data = var_file
-        if list(tool.keys())[0].split("/")[0] not in data.keys(): # if the tool is not in the var.json, only add the tuple tool node and the options
-            label_dict = create_tuple_tool(G, tool, particle) # create the tuple tool node
+        if list(tool.keys())[0].split("/")[0] not in data.keys(): # if the tool is not in the var.json, only add the TupleTool node and the options
+            label_dict = create_tupletool(G, tool, particle) # create the TupleTool node
             return label_dict
         variables = data[list(tool.keys())[0].split("/")[0]]["variables"]
         if isinstance(list(variables.values())[0],dict): # this means that there are no variables which every particle can have
@@ -206,26 +233,34 @@ def link_var(G: nx.DiGraph, tool: dict, particle: str) -> dict:
                         pprop = G._node[particle][res] if "!" not in res else not G._node[particle][res.replace("!","")] # ! = not (basic e.g.)
                         pconfrom = pconfrom and pprop
                     if pconfrom: # if yes, move on as usual
-                        label_dict = create_tuple_tool(G,tool,particle)
+                        label_dict = create_tupletool(G,tool,particle)
                         tupletoolname = list(label_dict.keys())[list(label_dict.values()).index(list(tool.keys())[0])]
-                    else: # else dont link the tupletool and pass back
+                    else: # else dont link the TupleTool and pass back
                         return {}
         else:
-            label_dict = create_tuple_tool(G, tool, particle) # create the tuple tool node
-            tupletoolname = list(label_dict.keys())[list(label_dict.values()).index(list(tool.keys())[0])] # get the tupletool name written in the var.json
-        label_dict = label_dict | loop_varjson(G, tool, particle, variables, label_dict, tupletoolname) # link variables to tuple tool
+            label_dict = create_tupletool(G, tool, particle) # create the TupleTool node
+            tupletoolname = list(label_dict.keys())[list(label_dict.values()).index(list(tool.keys())[0])] # get the TupleTool name written in the var.json
+        label_dict = label_dict | loop_varjson(G, tool, particle, variables, label_dict, tupletoolname) # link variables to TupleTool
     return label_dict
-    
 
 
-def create_tuple_tool(G: nx.DiGraph, tool: dict, particle: str) -> dict:
-    """Creates tuple tool node and connects it with the options.
-    return: A dictionary that maps uuids to labels."""
+
+def create_tupletool(G: nx.DiGraph, tool: dict, particle: str) -> dict:
+    """Creates the TupleTool node and connects it with the options.
+
+    Args:
+        G (nx.DiGraph): The usual nx.DiGraph that contains everything.
+        tool (dict): A dictionary containing info about one TupleTool.
+        particle (str): The particle the TupleTool is applied to.
+
+    Returns:
+        dict: A dictionary that maps uuids to labels.
+    """
     tupletoolname = list(tool.keys())[0]
     options = (list(tool.values())[0])
 
     uuid_mapping = {}
-    # create uuid for every tupletool so they appear distinct in the graph
+    # create uuid for every TupleTool so they appear distinct in the graph
     ttname = uuid.uuid4()
     G.add_node(ttname, color = ttcolor, type = "tupletool", lokitool = "LoKi" in tupletoolname)
     G.add_edge(particle, ttname)
@@ -239,23 +274,27 @@ def create_tuple_tool(G: nx.DiGraph, tool: dict, particle: str) -> dict:
         if(link_hover):
             optionname = uuid.uuid4()
             uuid_mapping[optionname] = "{}".format(str(options[key]))
-            G.add_node(optionname, color = option_value_color, type = "option_value") 
+            G.add_node(optionname, color = option_value_color, type = "option_value")
             G.add_edge(keyname, optionname)
     return uuid_mapping
 
-def link_all(graph: nx.DiGraph, config: dict, apl_tools: list) -> dict:
+def link_all(graph: nx.DiGraph, config: dict, apl_tools: dict) -> dict:
+    """The main function that links all TupleTools, variables and explanations to the decay tree.
+    It goes backwards through the yaml and links TupleTools that have unique tuplenames and extranames.
+
+    Args:
+        graph (nx.DiGraph): The usual nx.DiGraph that contains everything.
+        config (dict): The yaml file as a dict.
+        apl_tools (dict): A list of all applied tools.
+
+    Returns:
+        dict: The updated label_dict dictionary.
     """
-    The main function that links all tupletools, variables and explanations to the decay tree.
-    It goes backwards through the yaml and links tupletools that have unique tuplenames and extranames.
-    graph: The usual nx.DiGraph that contains everything.
-    config: The yaml file as a dict.
-    apl_tools: A list of all applied tools.
-    return: The updated label_dict dictionary.
-    """
-    label_dict = {} # keeps track of uuids 
+
+    label_dict = {} # keeps track of uuids
     for group in list(config["groups"].keys())[::-1]: # go through groups in reverse order
         for tool in config["groups"][group]["tools"][::-1]:
-            toolname = list(tool.keys())[0] + "{}".format(tool[list(tool.keys())[0]].get('ExtraName',"")) # this ensures that the tool has a different name and extra name 
+            toolname = list(tool.keys())[0] + "{}".format(tool[list(tool.keys())[0]].get('ExtraName',"")) # this ensures that the tool has a different name and extra name
             for particle in group.split(","):
                 if toolname in apl_tools[particle]: # if the tool was already applied, skip it
                     pass
@@ -287,11 +326,13 @@ def link_all(graph: nx.DiGraph, config: dict, apl_tools: list) -> dict:
     return label_dict
 
 def style_graph(G: nx.DiGraph, label_dict: dict):
+    """Makes the graph pretty.
+
+    Args:
+        G (nx.DiGraph): The nx.DiGraph object representing the decay tree.
+        label_dict (dict): A dictionary that maps uuids to labels.
     """
-    Makes the graph pretty.
-    G: The nx.DiGraph object representing the decay tree.
-    label_dict: A dictionary that maps uuids to labels.
-    """
+
     maxi = 0 # maximum depth of the graph
     for i, layer in enumerate(nx.topological_generations(G)):
         for n in layer:
@@ -311,10 +352,10 @@ def style_graph(G: nx.DiGraph, label_dict: dict):
                 G.nodes[node]["title"] = f"{G.nodes[node]['label']} \n Basic: {G.nodes[node]['basic']} \n Head: {G.nodes[node]['head']} \n Charge: {G.nodes[node]['charge']} \n Mass: {round(float(G.nodes[node]['mass']), 2)} MeV"
             else:
                 G.nodes[node]["title"] = G.nodes[node]["label"]
-    
-def main(): 
-    """Opens NTuple Wizrad yaml file, calls every other function.
-    """
+
+def main():
+    """Opens NTuple Wizard yaml file, calls every other function."""
+
     args = parse_args()
     output = args.output if args.output else r"graph.html"
     yaml_file = args.file
@@ -340,12 +381,12 @@ def main():
         applied_tupletools[node] = []
     files.clear() # clear the files to save memory, as decay file is ~50 MB
 
-    label_dict = link_all(graph,config,applied_tupletools) # link all tupletools, variables etc.
+    label_dict = link_all(graph,config,applied_tupletools) # link all TupleTools, variables etc.
     style_graph(graph,label_dict)
 
     # draw graph
     G = nx.convert_node_labels_to_integers(graph)
-    
+
 
     net = Network(
         notebook=False,
@@ -361,7 +402,7 @@ def main():
     net.from_nx(G)
     node_l = [node for node in list(net.nodes) if node["type"] == "particle"]
     counts = {}
-    
+
     for node in node_l:
         counts[node["level"]] = counts.get(node["level"], 0) + 1
         node["physics"] = False # disable physics for particles
